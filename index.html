@@ -270,61 +270,61 @@
     <div class="content">
         <header>
             <h1>AI+X</h1>
-            <p class="subtitle">EXPLORING THE FUTURE OF INTELLIGENCE</p>
-            <a href="#" class="cta-button">JOIN COMMUNITY</a>
+            <p class="subtitle">探索智能未来</p>
+            <a href="#" class="cta-button">加入社区</a>
         </header>
 
         <div class="sections">
             <div class="section">
                 <div class="section-icon">⟡</div>
-                <h2>DISCOVER</h2>
-                <p>Explore cutting-edge AI research, breakthrough technologies, and innovative applications shaping our future.</p>
+                <h2>发现</h2>
+                <p>探索前沿AI研究、突破性技术与创新应用</p>
             </div>
 
             <div class="section">
                 <div class="section-icon">◈</div>
-                <h2>COLLABORATE</h2>
-                <p>Connect with researchers, developers, and enthusiasts. Share ideas and build transformative projects together.</p>
+                <h2>协作</h2>
+                <p>连接开发者与研究者，共建创新项目</p>
             </div>
 
             <div class="section">
                 <div class="section-icon">◇</div>
-                <h2>LEARN</h2>
-                <p>Access tutorials, workshops, and resources. From fundamentals to advanced AI techniques and methodologies.</p>
+                <h2>学习</h2>
+                <p>从基础到进阶，掌握AI技术与方法</p>
             </div>
 
             <div class="section">
                 <div class="section-icon">⬡</div>
-                <h2>CREATE</h2>
-                <p>Turn ideas into reality. Build innovative solutions and contribute to the AI ecosystem with community support.</p>
+                <h2>创造</h2>
+                <p>将想法变为现实，构建AI解决方案</p>
             </div>
 
             <div class="section">
                 <div class="section-icon">◉</div>
-                <h2>SHARE</h2>
-                <p>Showcase your projects, publish research findings, and inspire others with your contributions to the field.</p>
+                <h2>分享</h2>
+                <p>展示项目成果，发表研究，启发他人</p>
             </div>
 
             <div class="section">
                 <div class="section-icon">⌬</div>
-                <h2>EVOLVE</h2>
-                <p>Stay at the forefront of AI advancement. Adapt, grow, and lead the next generation of intelligent systems.</p>
+                <h2>进化</h2>
+                <p>引领下一代智能系统的发展方向</p>
             </div>
         </div>
 
         <div class="news-section">
             <div class="news-header">
-                <h2 class="news-title">&gt; AI DAILY NEWS</h2>
+                <h2 class="news-title">&gt; AI 资讯</h2>
                 <span class="news-update-info" id="lastUpdated"></span>
             </div>
             <div class="news-container" id="newsContainer">
-                <div class="news-loading">Loading news...</div>
+                <div class="news-loading">加载中...</div>
             </div>
         </div>
 
         <div class="footer">
-            <p>&gt; AI+X COMMUNITY © 2025 &lt;</p>
-            <p style="margin-top: 10px;">[ WHERE INNOVATION MEETS INTELLIGENCE ]</p>
+            <p>&gt; AI+X 社区 © 2025 &lt;</p>
+            <p style="margin-top: 10px;">[ 创新 · 智慧 ]</p>
         </div>
     </div>
 
@@ -386,7 +386,7 @@
 
                 // Update last updated info
                 if (data.lastUpdated) {
-                    lastUpdatedEl.textContent = `[LAST UPDATED: ${data.lastUpdated}]`;
+                    lastUpdatedEl.textContent = `[更新于: ${data.lastUpdated}]`;
                 }
 
                 // Clear loading message
@@ -405,7 +405,7 @@
                             </div>
                         </div>
                         <p class="news-item-summary">${item.summary}</p>
-                        <p class="news-source">SOURCE: ${item.source}</p>
+                        <p class="news-source">来源: ${item.source}</p>
                     `;
                     newsItem.addEventListener('click', () => {
                         if (item.url && item.url !== '#') {
@@ -419,8 +419,8 @@
                 console.error('Error loading news:', error);
                 newsContainer.innerHTML = `
                     <div class="news-error">
-                        <p>[ERROR: Failed to load news data]</p>
-                        <p style="margin-top: 10px; font-size: 0.9em;">Please ensure news.json file exists in the same directory.</p>
+                        <p>[错误: 无法加载新闻数据]</p>
+                        <p style="margin-top: 10px; font-size: 0.9em;">请确保 news.json 文件存在</p>
                     </div>
                 `;
             }
