@@ -29,6 +29,34 @@
             opacity: 0.3;
         }
 
+        .apple-corner {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            text-align: center;
+            opacity: 0.6;
+            transition: opacity 0.3s ease;
+        }
+
+        .apple-corner:hover {
+            opacity: 1;
+        }
+
+        .apple-icon {
+            font-size: 2.5em;
+            line-height: 1;
+            margin-bottom: 5px;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+        }
+
+        .apple-text {
+            font-size: 0.7em;
+            opacity: 0.5;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
         .content {
             position: relative;
             z-index: 1;
@@ -265,6 +293,11 @@
 <body>
     <div id="canvas-container">
         <canvas id="matrix"></canvas>
+    </div>
+
+    <div class="apple-corner">
+        <div class="apple-icon">🍎</div>
+        <div class="apple-text">谢苹果退隐江湖了...</div>
     </div>
 
     <div class="content">
