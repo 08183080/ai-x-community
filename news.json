@@ -1,0 +1,59 @@
+{
+  "lastUpdated": "2025-01-05",
+  "news": [
+    {
+      "id": 1,
+      "title": "OpenAI发布GPT-5预览版",
+      "summary": "OpenAI今日正式发布GPT-5预览版，在推理能力和多模态理解方面取得重大突破...",
+      "source": "OpenAI Official",
+      "date": "2025-01-05",
+      "category": "模型发布",
+      "url": "#"
+    },
+    {
+      "id": 2,
+      "title": "Google DeepMind推出新蛋白质折叠AI",
+      "summary": "DeepMind宣布其最新的AlphaFold 3能够预测蛋白质相互作用，将彻底改变药物研发...",
+      "source": "Google DeepMind",
+      "date": "2025-01-05",
+      "category": "科学研究",
+      "url": "#"
+    },
+    {
+      "id": 3,
+      "title": "Meta开源Llama 3模型",
+      "summary": "Meta发布Llama 3开源模型，性能媲美闭源商业模型，为开发者提供强大工具...",
+      "source": "Meta AI",
+      "date": "2025-01-04",
+      "category": "开源社区",
+      "url": "#"
+    },
+    {
+      "id": 4,
+      "title": "AI在医疗诊断领域取得新进展",
+      "summary": "斯坦福大学研究团队开发的AI系统在早期癌症筛查中准确率达到98%...",
+      "source": "Stanford AI Lab",
+      "date": "2025-01-04",
+      "category": "应用落地",
+      "url": "#"
+    },
+    {
+      "id": 5,
+      "title": "Anthropic发布Claude 4安全框架",
+      "summary": "Anthropic推出新的AI安全评估框架，为负责任的AI发展设定新标准...",
+      "source": "Anthropic",
+      "date": "2025-01-03",
+      "category": "AI安全",
+      "url": "#"
+    },
+    {
+      "id": 6,
+      "title": "GitHub Copilot X全面升级",
+      "summary": "GitHub发布Copilot X重大更新，支持更多编程语言和智能代码审查功能...",
+      "source": "GitHub Blog",
+      "date": "2025-01-03",
+      "category": "开发工具",
+      "url": "#"
+    }
+  ]
+}

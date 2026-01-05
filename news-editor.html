@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI+X News Editor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            color: #00ff00;
+            padding: 40px 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: 2.5em;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+
+        .subtitle {
+            text-align: center;
+            opacity: 0.6;
+            margin-bottom: 40px;
+            font-size: 0.9em;
+        }
+
+        .form-section {
+            background: rgba(0, 255, 0, 0.02);
+            border: 1px solid rgba(0, 255, 0, 0.2);
+            padding: 30px;
+            margin-bottom: 40px;
+        }
+
+        .form-title {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+            letter-spacing: 0.1em;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.9em;
+            opacity: 0.8;
+            letter-spacing: 0.05em;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            background: rgba(0, 255, 0, 0.02);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            transition: all 0.3s ease;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: rgba(0, 255, 0, 0.6);
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 15px;
+            margin-top: 25px;
+        }
+
+        button {
+            padding: 12px 30px;
+            border: 1px solid rgba(0, 255, 0, 0.5);
+            background: transparent;
+            color: #00ff00;
+            font-family: 'Courier New', monospace;
+            font-size: 0.95em;
+            letter-spacing: 0.1em;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        button:hover {
+            background: rgba(0, 255, 0, 0.1);
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.2);
+        }
+
+        button.primary {
+            background: rgba(0, 255, 0, 0.1);
+        }
+
+        button.danger {
+            border-color: rgba(255, 0, 0, 0.5);
+            color: #ff4444;
+        }
+
+        button.danger:hover {
+            background: rgba(255, 0, 0, 0.1);
+        }
+
+        .news-list {
+            margin-top: 40px;
+        }
+
+        .news-item {
+            background: rgba(0, 255, 0, 0.02);
+            border: 1px solid rgba(0, 255, 0, 0.15);
+            padding: 20px;
+            margin-bottom: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .news-item:hover {
+            border-color: rgba(0, 255, 0, 0.4);
+        }
+
+        .news-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: start;
+            margin-bottom: 10px;
+        }
+
+        .news-item-title {
+            font-size: 1.1em;
+            font-weight: 400;
+        }
+
+        .news-item-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .news-item-actions button {
+            padding: 5px 15px;
+            font-size: 0.85em;
+        }
+
+        .news-item-meta {
+            font-size: 0.85em;
+            opacity: 0.6;
+            margin-top: 10px;
+        }
+
+        .message {
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-left: 3px solid;
+            animation: slideIn 0.3s ease;
+        }
+
+        .message.success {
+            background: rgba(0, 255, 0, 0.05);
+            border-color: #00ff00;
+        }
+
+        .message.error {
+            background: rgba(255, 0, 0, 0.05);
+            border-color: #ff4444;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .export-section {
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .export-info {
+            opacity: 0.6;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>&gt; AI+X NEWS EDITOR</h1>
+        <p class="subtitle">[ MANAGE DAILY AI NEWS ]</p>
+
+        <div id="messageContainer"></div>
+
+        <div class="form-section">
+            <h2 class="form-title">&gt; ADD NEW ARTICLE</h2>
+            <form id="newsForm">
+                <div class="form-group">
+                    <label for="title">TITLE:</label>
+                    <input type="text" id="title" required placeholder="Enter news title...">
+                </div>
+
+                <div class="form-group">
+                    <label for="summary">SUMMARY:</label>
+                    <textarea id="summary" required placeholder="Enter news summary..."></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label for="source">SOURCE:</label>
+                    <input type="text" id="source" required placeholder="e.g., OpenAI Official">
+                </div>
+
+                <div class="form-group">
+                    <label for="category">CATEGORY:</label>
+                    <select id="category" required>
+                        <option value="">Select category...</option>
+                        <option value="模型发布">模型发布</option>
+                        <option value="科学研究">科学研究</option>
+                        <option value="开源社区">开源社区</option>
+                        <option value="应用落地">应用落地</option>
+                        <option value="AI安全">AI安全</option>
+                        <option value="开发工具">开发工具</option>
+                        <option value="行业动态">行业动态</option>
+                        <option value="其他">其他</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="url">URL (OPTIONAL):</label>
+                    <input type="url" id="url" placeholder="https://...">
+                </div>
+
+                <div class="button-group">
+                    <button type="submit" class="primary">ADD ARTICLE</button>
+                    <button type="button" id="clearBtn">CLEAR FORM</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="news-list">
+            <h2 class="form-title">&gt; CURRENT ARTICLES (<span id="articleCount">0</span>)</h2>
+            <div id="newsListContainer"></div>
+        </div>
+
+        <div class="export-section">
+            <p class="export-info">Changes are automatically saved to news.json</p>
+            <button onclick="window.open('index.html', '_blank')">VIEW WEBSITE</button>
+        </div>
+    </div>
+
+    <script>
+        let newsData = {
+            lastUpdated: new Date().toISOString().split('T')[0],
+            news: []
+        };
+
+        // Load existing news data
+        async function loadNewsData() {
+            try {
+                const response = await fetch('news.json');
+                if (response.ok) {
+                    newsData = await response.json();
+                    renderNewsList();
+                }
+            } catch (error) {
+                console.error('Error loading news:', error);
+            }
+        }
+
+        // Save news data
+        async function saveNewsData() {
+            newsData.lastUpdated = new Date().toISOString().split('T')[0];
+            const json = JSON.stringify(newsData, null, 2);
+
+            // Create a blob and download it
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'news.json';
+            a.click();
+            URL.revokeObjectURL(url);
+
+            showMessage('news.json downloaded. Please replace the existing file to save changes.', 'success');
+        }
+
+        // Show message
+        function showMessage(text, type = 'success') {
+            const container = document.getElementById('messageContainer');
+            const message = document.createElement('div');
+            message.className = `message ${type}`;
+            message.textContent = `[${type.toUpperCase()}] ${text}`;
+            container.appendChild(message);
+
+            setTimeout(() => {
+                message.remove();
+            }, 5000);
+        }
+
+        // Render news list
+        function renderNewsList() {
+            const container = document.getElementById('newsListContainer');
+            const countEl = document.getElementById('articleCount');
+            countEl.textContent = newsData.news.length;
+
+            if (newsData.news.length === 0) {
+                container.innerHTML = '<p style="opacity: 0.5; text-align: center;">No articles yet. Add your first article above.</p>';
+                return;
+            }
+
+            container.innerHTML = newsData.news.map((item, index) => `
+                <div class="news-item">
+                    <div class="news-item-header">
+                        <div class="news-item-title">${item.title}</div>
+                        <div class="news-item-actions">
+                            <button onclick="editArticle(${index})">EDIT</button>
+                            <button class="danger" onclick="deleteArticle(${index})">DELETE</button>
+                        </div>
+                    </div>
+                    <div style="font-size: 0.9em; opacity: 0.7; margin-top: 10px;">${item.summary}</div>
+                    <div class="news-item-meta">
+                        [ CATEGORY: ${item.category} ] |
+                        [ SOURCE: ${item.source} ] |
+                        [ DATE: ${item.date} ]
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Add or update article
+        document.getElementById('newsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const article = {
+                id: Date.now(),
+                title: document.getElementById('title').value,
+                summary: document.getElementById('summary').value,
+                source: document.getElementById('source').value,
+                category: document.getElementById('category').value,
+                url: document.getElementById('url').value || '#',
+                date: new Date().toISOString().split('T')[0]
+            };
+
+            newsData.news.unshift(article);
+            renderNewsList();
+            saveNewsData();
+            this.reset();
+            showMessage('Article added successfully!');
+        });
+
+        // Edit article
+        function editArticle(index) {
+            const article = newsData.news[index];
+            document.getElementById('title').value = article.title;
+            document.getElementById('summary').value = article.summary;
+            document.getElementById('source').value = article.source;
+            document.getElementById('category').value = article.category;
+            document.getElementById('url').value = article.url === '#' ? '' : article.url;
+
+            // Remove the article being edited
+            newsData.news.splice(index, 1);
+            renderNewsList();
+
+            showMessage('Article loaded for editing. Make changes and click "ADD ARTICLE" to save.', 'success');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Delete article
+        function deleteArticle(index) {
+            if (confirm('Are you sure you want to delete this article?')) {
+                newsData.news.splice(index, 1);
+                renderNewsList();
+                saveNewsData();
+                showMessage('Article deleted successfully!', 'success');
+            }
+        }
+
+        // Clear form
+        document.getElementById('clearBtn').addEventListener('click', function() {
+            document.getElementById('newsForm').reset();
+        });
+
+        // Load data on page load
+        loadNewsData();
+    </script>
+</body>
+</html>
