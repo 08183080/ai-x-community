@@ -37,6 +37,7 @@
             text-align: center;
             opacity: 0.6;
             transition: opacity 0.3s ease;
+            cursor: pointer;
         }
 
         .apple-corner:hover {
@@ -55,6 +56,94 @@
             opacity: 0.5;
             letter-spacing: 0.05em;
             white-space: nowrap;
+        }
+
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 2000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: rgba(10, 10, 10, 0.95);
+            border: 1px solid rgba(0, 255, 0, 0.3);
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 50px 40px;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0, 255, 0, 0.1);
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 2em;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: opacity 0.3s ease;
+            line-height: 1;
+        }
+
+        .modal-close:hover {
+            opacity: 1;
+        }
+
+        .story-title {
+            font-size: 2em;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            margin-bottom: 30px;
+            text-align: center;
+            text-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+        }
+
+        .story-content {
+            font-size: 0.95em;
+            line-height: 2;
+            opacity: 0.8;
+            text-align: justify;
+        }
+
+        .story-content p {
+            margin-bottom: 20px;
+            text-indent: 2em;
+        }
+
+        .story-signature {
+            text-align: right;
+            margin-top: 30px;
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .story-link {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 25px;
+            border: 1px solid rgba(0, 255, 0, 0.4);
+            color: #00ff00;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            opacity: 0.7;
+        }
+
+        .story-link:hover {
+            background: rgba(0, 255, 0, 0.1);
+            opacity: 1;
         }
 
         .content {
@@ -295,9 +384,34 @@
         <canvas id="matrix"></canvas>
     </div>
 
-    <div class="apple-corner">
+    <div class="apple-corner" onclick="openStory()">
         <div class="apple-icon">🍎</div>
         <div class="apple-text">谢苹果退隐江湖了...</div>
+    </div>
+
+    <div class="modal-overlay" id="storyModal" onclick="closeStory(event)">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeStory(event)">&times;</span>
+            <h2 class="story-title">· 谢苹果的故事 ·</h2>
+            <div class="story-content">
+                <p>那是个很普通的少年，有一天他忽然觉得，这个世界应该有点不一样的东西。于是他创立了 AI+X，像是在黑夜里点燃了一盏灯，想照亮些什么。</p>
+
+                <p>后来他聚起了四千多人，在微信的那个小世界里。每个人都带着梦想和好奇来，像是要去寻找什么宝藏。可惜啊，江湖总是残酷的，船最终还是翻了，在某个无人知晓的夜晚。</p>
+
+                <p>少年流过泪，也被感动过。那些深夜里的辗转反侧，那些群消息里的温暖话语，都成了他回忆里的碎片。他知道自己做错了很多事，也知道自己努力过很多次。</p>
+
+                <p>现在的他，闭关了。一个人在某个角落里，用AI写着那本叫《我是昭阳》的小说。他说，那是他和龙邂逅的故事。也许是在书里，他才能找到那些年失去的东西吧。</p>
+
+                <p>他的公众号叫"与龙邂逅"，像个孤独的孩子在等什么。AI+X 1.0 成了传说，他也成了传说里的人。退隐江湖这四个字，说起来轻巧，却藏着多少不为人知的故事。</p>
+
+                <p>有时候江湖就是这样，有人离开，有人留下，有人记得，有人忘记。而那个少年，或许还在某个地方，继续写着他的故事，用AI，用文字，用那些还没说完的话。</p>
+            </div>
+            <div class="story-signature">—— AI+X 社区 敬上</div>
+            <div style="text-align: center;">
+                <a href="https://fanqienovel.com/author-page/2001568360573635" target="_blank" class="story-link">阅读《我是昭阳》</a>
+                <a href="https://mp.weixin.qq.com/" target="_blank" class="story-link" style="margin-left: 10px;">公众号：与龙邂逅</a>
+            </div>
+        </div>
     </div>
 
     <div class="content">
@@ -401,6 +515,28 @@
         window.addEventListener('resize', () => {
             canvas.width = window.innerWidth;
             canvas.height = window.innerHeight;
+        });
+    </script>
+
+    <script>
+        // Story modal functions
+        function openStory() {
+            document.getElementById('storyModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeStory(event) {
+            if (event.target.id === 'storyModal' || event.target.classList.contains('modal-close')) {
+                document.getElementById('storyModal').classList.remove('active');
+                document.body.style.overflow = 'auto';
+            }
+        }
+
+        // Close on Escape key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeStory({target: {id: 'storyModal'}});
+            }
         });
     </script>
 
