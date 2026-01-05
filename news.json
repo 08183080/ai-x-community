@@ -1,6 +1,38 @@
 {
-  "lastUpdated": "2025-01-05",
+  "lastUpdated": "2026-01-05",
   "news": [
+    {
+      "title": "The Download: Kenya’s Great Carbon Valley, and the AI terms that were everywhere in 2025",
+      "summary": "This is today&#8217;s edition of The Download, our weekday newsletter that provides a daily dose of what&#8217;s going on in the world of technology. Welcome to Kenya’s Great Carbon Valley: a bold new...",
+      "source": "MIT Technology Review AI",
+      "date": "2026-01-05",
+      "category": "行业动态",
+      "url": "https://www.technologyreview.com/2026/01/05/1130672/the-download-kenyas-great-carbon-valley-and-the-ai-terms-that-were-everywhere-in-2025/"
+    },
+    {
+      "title": "What’s next for AI in 2026",
+      "summary": "MIT Technology Review’s What’s Next series looks across industries, trends, and technologies to give you a first look at the future. You can read the rest of them here. In an industry in constant flux...",
+      "source": "MIT Technology Review AI",
+      "date": "2026-01-05",
+      "category": "行业动态",
+      "url": "https://www.technologyreview.com/2026/01/05/1130662/whats-next-for-ai-in-2026/"
+    },
+    {
+      "title": "Announcing OpenAI Grove Cohort 2",
+      "summary": "Applications are now open for OpenAI Grove Cohort 2, a 5-week founder program designed for individuals at any stage, from pre-idea to product. Participants receive $50K in API credits, early access to...",
+      "source": "OpenAI Blog",
+      "date": "2026-01-02",
+      "category": "模型发布",
+      "url": "https://openai.com/index/openai-grove"
+    },
+    {
+      "title": "Job titles of the future: Head-transplant surgeon",
+      "summary": "The Italian neurosurgeon Sergio Canavero has been preparing for a surgery that might never happen. His idea? Swap a sick person’s head—or perhaps just the brain—onto a younger, healthier body. Canaver...",
+      "source": "MIT Technology Review AI",
+      "date": "2026-01-02",
+      "category": "行业动态",
+      "url": "https://www.technologyreview.com/2026/01/02/1129416/head-transplant-surgeon-sergio-canavero-future-job/"
+    },
     {
       "id": 1,
       "title": "OpenAI发布GPT-5预览版",
