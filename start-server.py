@@ -24,8 +24,8 @@ def start_server():
     # 切换到脚本所在目录
     os.chdir(os.path.dirname(os.path.abspath(__file__)))
 
-    # 创建服务器
-    with socketserver.TCPServer(("", PORT), MyHTTPRequestHandler) as httpd:
+    # 创建服务器 - 绑定到 localhost (IPv4) 以避免 IPv6 问题
+    with socketserver.TCPServer(("127.0.0.1", PORT), MyHTTPRequestHandler) as httpd:
         print("=" * 60)
         print("     AI+X Community - Local Server")
         print("=" * 60)
@@ -35,7 +35,6 @@ def start_server():
         print("=" * 60)
         print("\nAvailable pages:")
         print(f"  • Main site:  http://localhost:{PORT}/index.html")
-        print(f"  • News editor: http://localhost:{PORT}/news-editor.html")
         print("\n" + "=" * 60 + "\n")
 
         # 自动打开浏览器

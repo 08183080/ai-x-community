@@ -5,6 +5,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI+X Community</title>
     <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #00ff88;
+            --primary-color-dark: #00cc6a;
+            --primary-color-light: #33ffaa;
+            --accent-color: #00d4ff;
+            --bg-gradient-start: #0a0a0a;
+            --bg-gradient-end: #1a1a2e;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(0, 255, 136, 0.2);
+            --glass-border-hover: rgba(0, 255, 136, 0.4);
+            --text-primary: #00ff88;
+            --text-secondary: rgba(0, 255, 136, 0.7);
+            --text-muted: rgba(0, 255, 136, 0.5);
+            --shadow-glow: rgba(0, 255, 136, 0.3);
+            --shadow-glow-strong: rgba(0, 255, 136, 0.5);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.2s ease;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -13,12 +33,14 @@
 
         body {
             font-family: 'Courier New', monospace;
-            background: #0a0a0a;
-            color: #00ff00;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
             overflow-x: hidden;
             min-height: 100vh;
         }
 
+        /* Code Rain Canvas */
         #canvas-container {
             position: fixed;
             top: 0;
@@ -27,79 +49,124 @@
             height: 100%;
             z-index: 0;
             opacity: 0.3;
+            pointer-events: none;
         }
 
+        /* Apple Corner - Glassmorphism */
         .apple-corner {
             position: fixed;
             top: 20px;
             right: 20px;
             z-index: 1000;
             text-align: center;
-            opacity: 0.6;
-            transition: opacity 0.3s ease;
+            opacity: 0.7;
+            transition: var(--transition-smooth);
             cursor: pointer;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 15px 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
         }
 
         .apple-corner:hover {
             opacity: 1;
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 8px 32px var(--shadow-glow);
+            transform: translateY(-2px);
         }
 
         .apple-icon {
             font-size: 2.5em;
             line-height: 1;
-            margin-bottom: 5px;
-            text-shadow: 0 0 10px rgba(0, 255, 0, 0.3);
+            margin-bottom: 8px;
+            text-shadow: 0 0 15px var(--shadow-glow);
+            filter: drop-shadow(0 0 5px var(--primary-color));
         }
 
         .apple-text {
             font-size: 0.7em;
-            opacity: 0.5;
+            opacity: 0.7;
             letter-spacing: 0.05em;
             white-space: nowrap;
+            color: var(--text-secondary);
         }
 
+        /* Modal - Glassmorphism */
         .modal-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.8);
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             z-index: 2000;
             display: none;
             justify-content: center;
             align-items: center;
             padding: 20px;
+            animation: fadeIn 0.3s ease;
         }
 
         .modal-overlay.active {
             display: flex;
         }
 
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
         .modal-content {
-            background: rgba(10, 10, 10, 0.95);
-            border: 1px solid rgba(0, 255, 0, 0.3);
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
             max-width: 600px;
             max-height: 80vh;
             overflow-y: auto;
             padding: 50px 40px;
             position: relative;
-            box-shadow: 0 0 50px rgba(0, 255, 0, 0.1);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px var(--shadow-glow);
+            animation: slideUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(30px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         .modal-close {
             position: absolute;
-            top: 15px;
-            right: 20px;
+            top: 20px;
+            right: 25px;
             font-size: 2em;
             cursor: pointer;
-            opacity: 0.5;
-            transition: opacity 0.3s ease;
+            opacity: 0.6;
+            transition: var(--transition-fast);
             line-height: 1;
+            color: var(--text-primary);
         }
 
         .modal-close:hover {
             opacity: 1;
+            transform: rotate(90deg);
+            color: var(--accent-color);
         }
 
         .story-title {
@@ -108,14 +175,19 @@
             letter-spacing: 0.2em;
             margin-bottom: 30px;
             text-align: center;
-            text-shadow: 0 0 15px rgba(0, 255, 0, 0.4);
+            text-shadow: 0 0 20px var(--shadow-glow);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
 
         .story-content {
             font-size: 0.95em;
             line-height: 2;
-            opacity: 0.8;
+            opacity: 0.85;
             text-align: justify;
+            color: var(--text-secondary);
         }
 
         .story-content p {
@@ -128,253 +200,348 @@
             margin-top: 30px;
             opacity: 0.6;
             font-style: italic;
+            color: var(--text-muted);
         }
 
         .story-link {
             display: inline-block;
             margin-top: 20px;
-            padding: 10px 25px;
-            border: 1px solid rgba(0, 255, 0, 0.4);
-            color: #00ff00;
+            padding: 12px 28px;
+            border: 1px solid var(--glass-border);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
             text-decoration: none;
-            transition: all 0.3s ease;
-            opacity: 0.7;
+            transition: var(--transition-smooth);
+            opacity: 0.8;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .story-link::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+            transition: left 0.5s ease;
         }
 
         .story-link:hover {
-            background: rgba(0, 255, 0, 0.1);
+            background: rgba(0, 255, 136, 0.1);
             opacity: 1;
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 0 20px var(--shadow-glow);
+            transform: translateY(-2px);
         }
 
+        .story-link:hover::before {
+            left: 100%;
+        }
+
+        /* Main Content */
         .content {
             position: relative;
             z-index: 1;
             max-width: 1200px;
             margin: 0 auto;
-            padding: 60px 20px;
+            padding: 80px 20px;
         }
 
+        /* Header */
         header {
             text-align: center;
-            margin-bottom: 100px;
+            margin-bottom: 120px;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         h1 {
-            font-size: 4em;
+            font-size: 4.5em;
             font-weight: 300;
             letter-spacing: 0.3em;
-            margin-bottom: 20px;
-            text-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            margin-bottom: 25px;
+            text-shadow: 0 0 30px var(--shadow-glow-strong);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes glow {
+            from {
+                filter: drop-shadow(0 0 10px var(--primary-color));
+            }
+            to {
+                filter: drop-shadow(0 0 20px var(--accent-color));
+            }
         }
 
         .subtitle {
-            font-size: 1.2em;
-            opacity: 0.7;
-            letter-spacing: 0.2em;
-        }
-
-        .sections {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 40px;
-            margin-top: 60px;
-        }
-
-        .section {
-            background: rgba(0, 255, 0, 0.02);
-            border: 1px solid rgba(0, 255, 0, 0.2);
-            padding: 40px 30px;
-            transition: all 0.3s ease;
-            cursor: pointer;
-        }
-
-        .section:hover {
-            background: rgba(0, 255, 0, 0.05);
-            border-color: rgba(0, 255, 0, 0.5);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 255, 0, 0.1);
-        }
-
-        .section h2 {
-            font-size: 1.5em;
-            font-weight: 300;
-            margin-bottom: 15px;
-            letter-spacing: 0.1em;
-        }
-
-        .section p {
-            font-size: 0.95em;
-            line-height: 1.8;
+            font-size: 1.3em;
             opacity: 0.8;
-        }
-
-        .section-icon {
-            font-size: 2em;
+            letter-spacing: 0.2em;
+            color: var(--text-secondary);
             margin-bottom: 20px;
-            opacity: 0.7;
         }
 
+        /* Vision Section */
+        .vision-section {
+            margin-top: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            animation: fadeInUp 0.8s ease;
+        }
+
+        .vision-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 60px 50px;
+            max-width: 900px;
+            width: 100%;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition-smooth);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .vision-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, transparent, var(--primary-color), var(--accent-color), transparent);
+            transform: scaleX(0);
+            transition: transform 0.8s ease;
+        }
+
+        .vision-card:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 40px var(--shadow-glow);
+            transform: translateY(-5px);
+        }
+
+        .vision-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .vision-content {
+            text-align: center;
+        }
+
+        .vision-text {
+            font-size: 1.8em;
+            line-height: 2;
+            letter-spacing: 0.1em;
+            color: var(--text-primary);
+            font-weight: 300;
+            text-shadow: 0 0 20px var(--shadow-glow);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            position: relative;
+        }
+
+        .vision-text::before,
+        .vision-text::after {
+            content: '"';
+            font-size: 1.5em;
+            opacity: 0.5;
+            position: absolute;
+            color: var(--text-muted);
+            -webkit-text-fill-color: var(--text-muted);
+        }
+
+        .vision-text::before {
+            left: -30px;
+            top: -10px;
+        }
+
+        .vision-text::after {
+            right: -30px;
+            bottom: -10px;
+        }
+
+        /* Footer */
         .footer {
             text-align: center;
-            margin-top: 100px;
-            padding-top: 40px;
-            border-top: 1px solid rgba(0, 255, 0, 0.1);
+            margin-top: 120px;
+            padding-top: 50px;
+            border-top: 1px solid var(--glass-border);
             font-size: 0.9em;
-            opacity: 0.5;
+            opacity: 0.6;
+            color: var(--text-muted);
         }
 
+        /* CTA Button */
         .cta-button {
             display: inline-block;
             margin-top: 40px;
-            padding: 15px 40px;
-            border: 1px solid rgba(0, 255, 0, 0.5);
-            background: transparent;
-            color: #00ff00;
+            padding: 16px 45px;
+            border: 1px solid var(--glass-border-hover);
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            color: var(--text-primary);
             font-family: 'Courier New', monospace;
             font-size: 1em;
             letter-spacing: 0.2em;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: var(--transition-smooth);
             text-decoration: none;
+            border-radius: 8px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(0, 255, 136, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s ease, height 0.6s ease;
         }
 
         .cta-button:hover {
-            background: rgba(0, 255, 0, 0.1);
-            box-shadow: 0 0 30px rgba(0, 255, 0, 0.3);
+            background: rgba(0, 255, 136, 0.1);
+            box-shadow: 0 0 40px var(--shadow-glow-strong);
+            transform: translateY(-3px);
+            border-color: var(--primary-color);
         }
 
-        .news-section {
-            margin-top: 100px;
+        .cta-button:hover::before {
+            width: 300px;
+            height: 300px;
         }
 
-        .news-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
-            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
-        }
-
-        .news-title {
-            font-size: 2em;
-            font-weight: 300;
-            letter-spacing: 0.2em;
-        }
-
-        .news-update-info {
-            font-size: 0.9em;
-            opacity: 0.6;
-        }
-
-        .news-container {
-            display: grid;
-            gap: 20px;
-        }
-
-        .news-item {
-            background: rgba(0, 255, 0, 0.02);
-            border: 1px solid rgba(0, 255, 0, 0.15);
-            padding: 25px 30px;
-            transition: all 0.3s ease;
-            cursor: pointer;
+        .cta-button span {
             position: relative;
+            z-index: 1;
         }
 
-        .news-item::before {
-            content: '>';
-            position: absolute;
-            left: 10px;
-            top: 25px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
+        /* Responsive Design */
+        @media (max-width: 1024px) {
+            .vision-card {
+                padding: 50px 40px;
+                max-width: 800px;
+            }
 
-        .news-item:hover {
-            background: rgba(0, 255, 0, 0.05);
-            border-color: rgba(0, 255, 0, 0.4);
-            transform: translateX(5px);
-        }
-
-        .news-item:hover::before {
-            opacity: 0.5;
-        }
-
-        .news-item-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: start;
-            margin-bottom: 10px;
-            gap: 20px;
-        }
-
-        .news-item-title {
-            font-size: 1.1em;
-            font-weight: 400;
-            letter-spacing: 0.05em;
-            flex: 1;
-        }
-
-        .news-item-meta {
-            display: flex;
-            gap: 15px;
-            align-items: center;
-            flex-shrink: 0;
-        }
-
-        .news-category {
-            font-size: 0.75em;
-            padding: 3px 10px;
-            border: 1px solid rgba(0, 255, 0, 0.3);
-            opacity: 0.7;
-            letter-spacing: 0.1em;
-        }
-
-        .news-date {
-            font-size: 0.85em;
-            opacity: 0.5;
-        }
-
-        .news-item-summary {
-            font-size: 0.9em;
-            line-height: 1.7;
-            opacity: 0.7;
-            margin-bottom: 10px;
-        }
-
-        .news-source {
-            font-size: 0.85em;
-            opacity: 0.5;
-            font-style: italic;
-        }
-
-        .news-loading {
-            text-align: center;
-            padding: 40px;
-            opacity: 0.5;
-        }
-
-        .news-error {
-            background: rgba(255, 0, 0, 0.05);
-            border: 1px solid rgba(255, 0, 0, 0.3);
-            padding: 20px;
-            text-align: center;
-            opacity: 0.7;
+            .vision-text {
+                font-size: 1.6em;
+            }
         }
 
         @media (max-width: 768px) {
             h1 {
-                font-size: 2.5em;
+                font-size: 2.8em;
+                letter-spacing: 0.2em;
             }
-            .sections {
-                grid-template-columns: 1fr;
+
+            .subtitle {
+                font-size: 1.1em;
             }
-            .news-item-header {
-                flex-direction: column;
-                gap: 10px;
+
+            .vision-section {
+                margin-top: 60px;
             }
-            .news-item-meta {
-                flex-wrap: wrap;
+
+            .vision-card {
+                padding: 40px 30px;
+                max-width: 100%;
+            }
+
+            .vision-text {
+                font-size: 1.3em;
+                line-height: 1.8;
+                letter-spacing: 0.05em;
+            }
+
+            .vision-text::before,
+            .vision-text::after {
+                display: none;
+            }
+
+            .content {
+                padding: 60px 20px;
+            }
+
+            header {
+                margin-bottom: 80px;
+            }
+
+            .apple-corner {
+                top: 15px;
+                right: 15px;
+                padding: 12px 16px;
+            }
+
+            .apple-icon {
+                font-size: 2em;
+            }
+
+            .modal-content {
+                padding: 40px 30px;
+                max-width: 95%;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .vision-text {
+                font-size: 1.1em;
+                line-height: 1.7;
+            }
+
+            .vision-card {
+                padding: 30px 20px;
+            }
+
+            .cta-button {
+                padding: 14px 35px;
+                font-size: 0.9em;
+            }
+        }
+
+        /* Scroll Animations */
+        @media (prefers-reduced-motion: no-preference) {
+            .vision-card {
+                opacity: 0;
+                transform: translateY(30px);
+                transition: opacity 0.8s ease, transform 0.8s ease;
             }
         }
     </style>
@@ -384,223 +551,176 @@
         <canvas id="matrix"></canvas>
     </div>
 
-    <div class="apple-corner" onclick="openStory()">
-        <div class="apple-icon">🍎</div>
-        <div class="apple-text">谢苹果退隐江湖了...</div>
-    </div>
-
-    <div class="modal-overlay" id="storyModal" onclick="closeStory(event)">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeStory(event)">&times;</span>
-            <h2 class="story-title">· 谢苹果的传说 ·</h2>
-            <div class="story-content">
-                <p>那是乱世初开的时候，少年在混沌中看见了星辰。他举起AI+X的旗帜，在无边的黑暗里点燃了第一束火光，召集了四千勇士，要在微信的荒原上建立一个王国。</p>
-
-                <p>铁骑曾踏破长夜，战鼓曾震颤云端。那些日子里，每个人都相信少年能带他们去往一个新世界。可是啊，命运的齿轮从未停止转动，再强大的帝国也会在某个瞬间崩塌。王朝倾覆的那一夜，无人知晓，只有星辰看见了少年落下的泪。</p>
-
-                <p>他犯过错，也背过罪。那些深夜里的独坐，那些字字泣血的话语，都化作了记忆里的灰烬。他知道自己输过，也知道自己从未真正投降过。</p>
-
-                <p>如今他已隐入深山，闭关不出。在2023年，他召唤AI的灵力，写下了《我是昭阳》这部篇章。而现在，他又踏上了新的征途——去铸造那传说中的XPGFUZZ之剑。</p>
-
-                <p>他的旗号"与龙邂逅"，仍在风中飘扬，像是在等待着什么。AI+X 1.0 已成史册上的传说，而他也成了传说里的那个少年。退隐江湖四个字，说来轻如鸿毛，却藏着多少血与火的故事。</p>
-
-                <p>乱世终将落幕，英雄也会老去。而那个少年，或许还在某个地方，继续书写着他的传奇。用AI的灵力，用文字的锋芒，用那些未竟的誓言，去向世界证明——他，曾来过，曾战过，曾燃烧过。</p>
-                <p>这，就是谢苹果的故事。</p>
-            </div>
-            <div class="story-signature">—— AI+X 社区 敬上</div>
-            <div style="text-align: center;">
-                <a href="https://fanqienovel.com/author-page/2001568360573635" target="_blank" class="story-link">阅读《我是昭阳》</a>
-                <a href="https://mp.weixin.qq.com/" target="_blank" class="story-link" style="margin-left: 10px;">公众号：与龙邂逅</a>
-            </div>
-        </div>
-    </div>
-
-    <div class="content">
+    <main class="content">
         <header>
-            <h1>AI+X</h1>
-            <p class="subtitle">探索智能未来</p>
-            <a href="#" class="cta-button">加入社区</a>
+            <h1>AI+X社区</h1>
+            <a href="#" class="cta-button"><span>加入</span></a>
         </header>
 
-        <div class="sections">
-            <div class="section">
-                <div class="section-icon">⟡</div>
-                <h2>发现</h2>
-                <p>探索前沿AI研究、突破性技术与创新应用</p>
+        <section class="vision-section" aria-label="社区愿景">
+            <div class="vision-card">
+                <div class="vision-content">
+                    <p class="vision-text">我们想要用中国特色web3，做世界最好玩的AI社区，给所有人以爱和家园。</p>
+                </div>
             </div>
+        </section>
 
-            <div class="section">
-                <div class="section-icon">◈</div>
-                <h2>协作</h2>
-                <p>连接开发者与研究者，共建创新项目</p>
-            </div>
-
-            <div class="section">
-                <div class="section-icon">◇</div>
-                <h2>学习</h2>
-                <p>从基础到进阶，掌握AI技术与方法</p>
-            </div>
-
-            <div class="section">
-                <div class="section-icon">⬡</div>
-                <h2>创造</h2>
-                <p>将想法变为现实，构建AI解决方案</p>
-            </div>
-
-            <div class="section">
-                <div class="section-icon">◉</div>
-                <h2>分享</h2>
-                <p>展示项目成果，发表研究，启发他人</p>
-            </div>
-
-            <div class="section">
-                <div class="section-icon">⌬</div>
-                <h2>进化</h2>
-                <p>引领下一代智能系统的发展方向</p>
-            </div>
-        </div>
-
-        <div class="news-section">
-            <div class="news-header">
-                <h2 class="news-title">&gt; AI 资讯</h2>
-                <span class="news-update-info" id="lastUpdated"></span>
-            </div>
-            <div class="news-container" id="newsContainer">
-                <div class="news-loading">加载中...</div>
-            </div>
-        </div>
-
-        <div class="footer">
-            <p>&gt; AI+X 社区 © 2025 &lt;</p>
+        <footer class="footer">
+            <p>&gt; AI+X 社区 © 2026 &lt;</p>
             <p style="margin-top: 10px;">[ 创新 · 智慧 ]</p>
-        </div>
-    </div>
+        </footer>
+    </main>
 
     <script>
-        const canvas = document.getElementById('matrix');
-        const ctx = canvas.getContext('2d');
-
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-
-        const chars = '01';
-        const charArray = chars.split('');
-        const fontSize = 14;
-        const columns = canvas.width / fontSize;
-        const drops = [];
-
-        for (let i = 0; i < columns; i++) {
-            drops[i] = 1;
-        }
-
-        function draw() {
-            ctx.fillStyle = 'rgba(10, 10, 10, 0.05)';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            ctx.fillStyle = '#00ff00';
-            ctx.font = fontSize + 'px Courier New';
-
-            for (let i = 0; i < drops.length; i++) {
-                const text = charArray[Math.floor(Math.random() * charArray.length)];
-                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
-
-                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
-                    drops[i] = 0;
+        // Code Rain Animation Module
+        (function() {
+            'use strict';
+            
+            const canvas = document.getElementById('matrix');
+            if (!canvas) return;
+            
+            const ctx = canvas.getContext('2d');
+            let animationId;
+            let columns;
+            let drops = [];
+            
+            // Configuration
+            const config = {
+                chars: '01',
+                fontSize: 14,
+                speed: 33, // milliseconds
+                opacity: 0.3,
+                resetProbability: 0.975
+            };
+            
+            function initCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                columns = Math.floor(canvas.width / config.fontSize);
+                
+                // Initialize drops
+                drops = [];
+                for (let i = 0; i < columns; i++) {
+                    drops[i] = Math.random() * -100;
                 }
-                drops[i]++;
             }
-        }
-
-        setInterval(draw, 33);
-
-        window.addEventListener('resize', () => {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-        });
-    </script>
-
-    <script>
-        // Story modal functions
-        function openStory() {
-            document.getElementById('storyModal').classList.add('active');
-            document.body.style.overflow = 'hidden';
-        }
-
-        function closeStory(event) {
-            if (event.target.id === 'storyModal' || event.target.classList.contains('modal-close')) {
-                document.getElementById('storyModal').classList.remove('active');
-                document.body.style.overflow = 'auto';
-            }
-        }
-
-        // Close on Escape key
-        document.addEventListener('keydown', function(event) {
-            if (event.key === 'Escape') {
-                closeStory({target: {id: 'storyModal'}});
-            }
-        });
-    </script>
-
-    <script>
-        // News loading functionality
-        async function loadNews() {
-            const newsContainer = document.getElementById('newsContainer');
-            const lastUpdatedEl = document.getElementById('lastUpdated');
-
-            try {
-                const response = await fetch('news.json');
-                if (!response.ok) {
-                    throw new Error('Failed to load news');
+            
+            function draw() {
+                // Fade effect
+                ctx.fillStyle = `rgba(10, 10, 10, ${0.05 * (1 / config.opacity)})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw characters
+                ctx.fillStyle = '#00ff88';
+                ctx.font = `${config.fontSize}px Courier New`;
+                
+                const charArray = config.chars.split('');
+                
+                for (let i = 0; i < drops.length; i++) {
+                    const text = charArray[Math.floor(Math.random() * charArray.length)];
+                    const x = i * config.fontSize;
+                    const y = drops[i] * config.fontSize;
+                    
+                    // Fade effect for characters
+                    const opacity = Math.min(1, (canvas.height - y) / canvas.height);
+                    ctx.globalAlpha = opacity * 0.8;
+                    ctx.fillText(text, x, y);
+                    ctx.globalAlpha = 1;
+                    
+                    // Reset drop
+                    if (y > canvas.height && Math.random() > config.resetProbability) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
                 }
-                const data = await response.json();
-
-                // Update last updated info
-                if (data.lastUpdated) {
-                    lastUpdatedEl.textContent = `[更新于: ${data.lastUpdated}]`;
-                }
-
-                // Clear loading message
-                newsContainer.innerHTML = '';
-
-                // Display news items
-                data.news.forEach(item => {
-                    const newsItem = document.createElement('div');
-                    newsItem.className = 'news-item';
-                    newsItem.innerHTML = `
-                        <div class="news-item-header">
-                            <h3 class="news-item-title">${item.title}</h3>
-                            <div class="news-item-meta">
-                                <span class="news-category">${item.category}</span>
-                                <span class="news-date">${item.date}</span>
-                            </div>
-                        </div>
-                        <p class="news-item-summary">${item.summary}</p>
-                        <p class="news-source">来源: ${item.source}</p>
-                    `;
-                    newsItem.addEventListener('click', () => {
-                        if (item.url && item.url !== '#') {
-                            window.open(item.url, '_blank');
-                        }
-                    });
-                    newsContainer.appendChild(newsItem);
+                
+                animationId = requestAnimationFrame(() => {
+                    setTimeout(draw, config.speed / 2);
                 });
-
-            } catch (error) {
-                console.error('Error loading news:', error);
-                newsContainer.innerHTML = `
-                    <div class="news-error">
-                        <p>[错误: 无法加载新闻数据]</p>
-                        <p style="margin-top: 10px; font-size: 0.9em;">请确保 news.json 文件存在</p>
-                    </div>
-                `;
             }
-        }
+            
+            function handleResize() {
+                initCanvas();
+            }
+            
+            // Initialize
+            initCanvas();
+            draw();
+            
+            // Handle resize with debounce
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(handleResize, 250);
+            });
+        })();
 
-        // Load news when page loads
-        document.addEventListener('DOMContentLoaded', loadNews);
+        // Modal Module
+        (function() {
+            'use strict';
+            
+            const modal = document.getElementById('storyModal');
+            if (!modal) return;
+            
+            function openStory() {
+                modal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                // Focus trap
+                const firstFocusable = modal.querySelector('.modal-close');
+                if (firstFocusable) firstFocusable.focus();
+            }
+            
+            function closeStory(event) {
+                if (event && event.target) {
+                    if (event.target.id === 'storyModal' || event.target.classList.contains('modal-close')) {
+                        modal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    }
+                } else {
+                    modal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+            
+            // Close on Escape key
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && modal.classList.contains('active')) {
+                    closeStory({target: {id: 'storyModal'}});
+                }
+            });
+            
+            // Expose functions globally
+            window.openStory = openStory;
+            window.closeStory = closeStory;
+        })();
 
-        // Optional: Auto-refresh news every 5 minutes
-        setInterval(loadNews, 300000);
+        // Scroll Animation Module
+        (function() {
+            'use strict';
+            
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return; // Skip animations if user prefers reduced motion
+            }
+            
+            const visionCard = document.querySelector('.vision-card');
+            if (!visionCard) return;
+            
+            const observerOptions = {
+                threshold: 0.2,
+                rootMargin: '0px 0px -50px 0px'
+            };
+            
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+            
+            observer.observe(visionCard);
+        })();
     </script>
 </body>
 </html>

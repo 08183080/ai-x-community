@@ -2,22 +2,38 @@
 
 ## 功能特性
 
-- **01代码雨背景** - 经典的《黑客帝国》风格动画效果
-- **极简设计** - 纯黑背景配合绿色主题色
-- **AI每日新闻** - 动态加载和展示AI行业新闻
-- **响应式布局** - 完美适配移动端和桌面端
-- **新闻编辑器** - 方便管理和更新新闻内容
+- **01代码雨背景** - 经典的《黑客帝国》风格动画效果，采用优化的性能实现
+- **现代深色科技风格** - 深色渐变背景配合绿色主题色，营造科技感氛围
+- **玻璃态设计** - 使用毛玻璃效果（glassmorphism）增强视觉层次感
+- **流畅动画效果** - 平滑的过渡动画和微交互，提升用户体验
+- **响应式布局** - 完美适配移动端、平板和桌面端
+- **谢苹果故事** - 点击右上角苹果图标查看社区创始人的传奇故事
+
+## 设计亮点
+
+### 视觉设计
+- **渐变色彩方案**：从纯绿色调整为渐变绿色系（`#00ff88` → `#00d4ff`）
+- **玻璃态元素**：使用 `backdrop-filter: blur()` 实现半透明毛玻璃效果
+- **动态交互**：卡片悬停效果、按钮涟漪动画、滚动淡入动画
+- **发光效果**：文字和边框的柔和发光，增强科技感
+
+### 技术实现
+- **CSS变量系统**：统一管理颜色、尺寸和过渡效果
+- **模块化JavaScript**：代码雨、模态框、滚动动画独立模块
+- **性能优化**：使用 `requestAnimationFrame` 优化动画性能
+- **可访问性**：支持键盘导航、ARIA标签、减少动画偏好
 
 ## 文件说明
 
-- `index.html` - 主网站页面
-- `news.json` - 新闻数据存储文件
-- `news-editor.html` - 新闻管理编辑器
+- `index.html` - 主网站页面（包含所有样式和脚本）
+- `start-server.py` - 本地开发服务器
+- `start.bat` - Windows快速启动脚本
+- `vercel.json` - Vercel部署配置
 - `README.md` - 本说明文件
 
 ## ⚠️ 重要提示：本地运行
 
-由于浏览器的CORS安全策略，**不能直接双击打开HTML文件**来查看新闻功能。你需要通过本地服务器运行。
+由于浏览器的CORS安全策略，**不能直接双击打开HTML文件**。你需要通过本地服务器运行。
 
 ### 方法一：使用Python（推荐）
 
@@ -43,106 +59,130 @@ npx http-server -p 8000
 
 ### 方法三：使用VS Code
 
-安装"Live Server"插件，右键点击index.html选择"Open with Live Server"
+安装"Live Server"插件，右键点击 `index.html` 选择"Open with Live Server"
 
-### 方法四：使用其他本地服务器
+### 方法四：使用Windows批处理文件
+
+双击 `start.bat` 文件（如果存在）
+
+### 方法五：使用其他本地服务器
 
 任何可以提供静态文件服务的Web服务器都可以（Apache、Nginx等）
-
-## 新闻管理
-
-### 添加新闻
-
-1. 打开 `news-editor.html`（通过本地服务器）
-2. 填写新闻表单：
-   - 标题：新闻标题
-   - 摘要：新闻内容摘要
-   - 来源：新闻来源
-   - 分类：选择合适的分类
-   - URL：可选的新闻链接
-3. 点击"ADD ARTICLE"添加
-4. 下载生成的news.json文件并替换原文件
-
-### 编辑/删除新闻
-
-1. 在编辑器页面查看现有文章列表
-2. 点击"EDIT"编辑文章
-3. 点击"DELETE"删除文章
-4. 更新后会自动下载新的news.json文件
-
-## 新闻数据格式
-
-`news.json` 文件格式示例：
-
-```json
-{
-  "lastUpdated": "2025-01-05",
-  "news": [
-    {
-      "id": 1,
-      "title": "新闻标题",
-      "summary": "新闻摘要...",
-      "source": "来源",
-      "date": "2025-01-05",
-      "category": "模型发布",
-      "url": "https://..."
-    }
-  ]
-}
-```
 
 ## 自定义配置
 
 ### 修改主题颜色
 
-在 `index.html` 中，将 `#00ff00` 替换为你想要的颜色值
+在 `index.html` 的 `<style>` 标签中，修改 CSS 变量：
+
+```css
+:root {
+    --primary-color: #00ff88;      /* 主色调 */
+    --accent-color: #00d4ff;       /* 强调色 */
+    --bg-gradient-start: #0a0a0a;  /* 背景渐变起始 */
+    --bg-gradient-end: #1a1a2e;    /* 背景渐变结束 */
+}
+```
 
 ### 修改代码雨速度
 
-在 `index.html` 的JavaScript部分，修改 `setInterval(draw, 33)` 中的数字（毫秒）
+在 JavaScript 的代码雨模块中，修改配置对象：
 
-### 添加新的新闻分类
+```javascript
+const config = {
+    speed: 33,  // 毫秒，数值越小速度越快
+    fontSize: 14,  // 字体大小
+    resetProbability: 0.975  // 重置概率
+};
+```
 
-在 `news-editor.html` 的分类选择框中添加新选项
+### 调整玻璃态效果
+
+修改 CSS 变量中的玻璃态相关值：
+
+```css
+:root {
+    --glass-bg: rgba(255, 255, 255, 0.05);  /* 背景透明度 */
+    --glass-border: rgba(0, 255, 136, 0.2); /* 边框透明度 */
+}
+```
 
 ## 浏览器兼容性
 
-- Chrome/Edge (推荐)
-- Firefox
-- Safari
-- 需要支持ES6+语法
+- ✅ Chrome/Edge (推荐) - 完全支持
+- ✅ Firefox - 完全支持
+- ✅ Safari - 完全支持（需要 Safari 9+）
+- ⚠️ 需要支持 ES6+ 语法和 CSS3 特性
+- ⚠️ `backdrop-filter` 需要现代浏览器支持
+
+### 特性支持
+- CSS变量（Custom Properties）
+- `backdrop-filter`（毛玻璃效果）
+- `requestAnimationFrame`（动画优化）
+- Intersection Observer API（滚动动画）
+
+## 响应式断点
+
+- **移动端**：`< 768px` - 单列布局，优化触摸交互
+- **平板**：`768px - 1024px` - 自适应网格布局
+- **桌面**：`> 1024px` - 完整多列布局
 
 ## 故障排除
-
-**问题：新闻显示"Loading..."或不显示**
-- 确保通过本地服务器运行，而不是直接打开文件
-- 检查news.json文件是否与index.html在同一目录
-- 打开浏览器开发者工具（F12）查看错误信息
 
 **问题：代码雨不显示**
 - 确保JavaScript已启用
 - 检查浏览器控制台是否有错误
+- 确认Canvas API支持
 
-**问题：编辑器无法保存**
-- 由于浏览器安全限制，需要手动下载并替换news.json文件
-- 或者使用支持本地文件写入的后端服务
+**问题：玻璃态效果不显示**
+- 检查浏览器是否支持 `backdrop-filter`
+- Chrome/Edge/Safari 需要较新版本
+- Firefox 需要启用 `layout.css.backdrop-filter.enabled`（实验性功能）
+
+**问题：动画不流畅**
+- 检查设备性能
+- 尝试在浏览器中禁用硬件加速
+- 检查是否有其他扩展影响性能
+
+**问题：移动端显示异常**
+- 确保 `viewport` meta 标签正确设置
+- 检查CSS媒体查询是否正确
+- 清除浏览器缓存
 
 ## 部署到线上
 
 可以直接部署到任何静态网站托管服务：
-- GitHub Pages
-- Netlify
-- Vercel
-- Cloudflare Pages
 
-只需要将所有文件上传即可正常工作。
+- **GitHub Pages** - 免费，适合开源项目
+- **Netlify** - 免费，自动部署
+- **Vercel** - 免费，快速部署（已包含配置文件）
+- **Cloudflare Pages** - 免费，全球CDN
+
+只需要将所有文件上传即可正常工作。无需后端服务器。
 
 ## 技术栈
 
-- HTML5
-- CSS3
-- Vanilla JavaScript (无依赖)
-- Canvas API
+- **HTML5** - 语义化标签，可访问性支持
+- **CSS3** - 变量系统、玻璃态效果、动画
+- **Vanilla JavaScript** - 无依赖，模块化代码
+- **Canvas API** - 代码雨动画
+- **Intersection Observer API** - 滚动动画
+
+## 性能优化
+
+- 使用 `requestAnimationFrame` 优化动画性能
+- 减少DOM操作，使用CSS动画替代JavaScript动画
+- 使用CSS变量减少重复代码
+- 模块化JavaScript代码，按需加载
+- 响应式图片和媒体查询优化
+
+## 可访问性
+
+- 语义化HTML标签（`<main>`, `<section>`, `<article>`, `<footer>`）
+- ARIA标签支持（`role`, `aria-label`, `aria-modal`）
+- 键盘导航支持（ESC键关闭模态框）
+- 减少动画偏好支持（`prefers-reduced-motion`）
+- 足够的颜色对比度
 
 ## 许可证
 

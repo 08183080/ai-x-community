@@ -1,4 +1,5 @@
 @echo off
+chcp 65001 >nul 2>&1
 echo ============================================================
 echo          AI+X Community - Local Server Launcher
 echo ============================================================
@@ -6,7 +7,7 @@ echo.
 echo Starting local server...
 echo.
 
-REM 检查Python是否安装
+REM Check if Python is installed
 python --version >nul 2>&1
 if %errorlevel% neq 0 (
     echo [ERROR] Python is not installed or not in PATH
@@ -18,7 +19,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM 运行Python服务器
+REM Run Python server
 python start-server.py
 
 if %errorlevel% neq 0 (
