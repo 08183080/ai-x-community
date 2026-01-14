@@ -44,11 +44,36 @@ function scanDirectory(dirPath, basePath = '') {
 
 module.exports = async (req, res) => {
   try {
-    // Vercel 上文件在项目根目录
-    const dataDir = path.join(process.cwd(), 'AI+X_history_data');
+    // 方法1: 尝试从静态文件读取（如果存在）
+    const staticListPath = path.join(process.cwd(), 'public', 'files-list.json');
+    if (fs.existsSync(staticListPath)) {
+      const files = JSON.parse(fs.readFileSync(staticListPath, 'utf-8'));
+      res.setHeader('Content-Type', 'application/json; charset=utf-8');
+      res.setHeader('Access-Control-Allow-Origin', '*');
+      return res.json(files);
+    }
     
-    if (!fs.existsSync(dataDir)) {
-      return res.status(404).json({ error: 'Directory not found' });
+    // 方法2: 动态扫描目录
+    const possiblePaths = [
+      path.join(process.cwd(), 'AI+X_history_data'),
+      path.join(__dirname, '..', 'AI+X_history_data'),
+      path.join(process.cwd(), 'public', 'AI+X_history_data')
+    ];
+    
+    let dataDir = null;
+    for (const dirPath of possiblePaths) {
+      if (fs.existsSync(dirPath)) {
+        dataDir = dirPath;
+        break;
+      }
+    }
+    
+    if (!dataDir) {
+      return res.status(404).json({ 
+        error: 'Directory not found',
+        message: '请运行 node generate-files-list.js 生成文件列表，或确保 AI+X_history_data 目录存在',
+        tried: possiblePaths
+      });
     }
     
     const files = scanDirectory(dataDir, 'AI+X_history_data');
@@ -56,6 +81,9 @@ module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.json(files);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ 
+      error: error.message,
+      stack: process.env.NODE_ENV === 'development' ? error.stack : undefined
+    });
   }
 };
