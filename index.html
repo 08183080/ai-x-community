@@ -436,6 +436,20 @@
             color: var(--text-muted);
         }
 
+        .footer a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            opacity: 0.8;
+            transition: var(--transition-fast);
+            letter-spacing: 0.05em;
+        }
+
+        .footer a:hover {
+            color: var(--text-primary);
+            opacity: 1;
+            text-shadow: 0 0 10px var(--shadow-glow);
+        }
+
         /* CTA Button */
         .cta-button {
             display: inline-block;
@@ -626,6 +640,9 @@
         <footer class="footer">
             <p>&gt; AI+X 社区 &lt;</p>
             <p style="margin-top: 10px;">未完待续...</p>
+            <p style="margin-top: 20px;">
+                AI资源：<a href="https://www.waytoagi.com/zh" target="_blank">waytoagi</a> · <a href="https://www.youtube.com/@HungyiLeeNTU" target="_blank">李宏毅讲AI</a>
+            </p>
         </footer>
     </main>
 
