@@ -611,6 +611,7 @@
                 <a href="https://my.feishu.cn/wiki/space/7493547114887233564?ccm_open_type=lark_wiki_spaceLink&open_tab_from=wiki_home" class="cta-button" target="_blank"><span>AI+X 1.0知识库</span></a>
                 <a href="https://my.feishu.cn/wiki/XpuewZYP8iLSFHkbm7jcPfexn4d?from=from_copylink" class="cta-button" target="_blank"><span>AI资源/信息/留言箱</span></a>
                 <a href="#" class="cta-button" id="zhaoyangButton"><span>我是昭阳</span></a>
+                <a href="#" class="cta-button" id="infoStreamButton"><span>AI信息流</span></a>
             </div>
         </header>
 
@@ -661,6 +662,16 @@
             <span class="modal-close" onclick="closeZhaoyangModal()">&times;</span>
             <div style="text-align: center;">
                 <p style="color: var(--text-primary); font-size: 1.3em; line-height: 1.8; letter-spacing: 0.1em;">2024年12月用deepseek写的小说。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Info Stream Modal -->
+    <div class="modal-overlay" id="infoStreamModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeInfoStreamModal()">&times;</span>
+            <div style="text-align: center;">
+                <p style="color: var(--text-primary); font-size: 1.3em; line-height: 1.8; letter-spacing: 0.1em;">人生第一个产品</p>
             </div>
         </div>
     </div>
@@ -923,6 +934,59 @@
             });
             
             window.closeZhaoyangModal = closeZhaoyangModal;
+        })();
+
+        // Info Stream Modal Module
+        (function() {
+            'use strict';
+            
+            const infoStreamModal = document.getElementById('infoStreamModal');
+            const infoStreamButton = document.getElementById('infoStreamButton');
+            const infoStreamUrl = 'https://github.com/all-dataa/github-trending.git';
+            let redirectTimeout;
+            
+            if (!infoStreamModal || !infoStreamButton) return;
+            
+            function openInfoStreamModal() {
+                infoStreamModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                // 延迟2秒后跳转
+                redirectTimeout = setTimeout(function() {
+                    window.open(infoStreamUrl, '_blank');
+                    closeInfoStreamModal();
+                }, 2000);
+            }
+            
+            function closeInfoStreamModal(event) {
+                if (redirectTimeout) {
+                    clearTimeout(redirectTimeout);
+                    redirectTimeout = null;
+                }
+                if (event && event.target) {
+                    if (event.target.id === 'infoStreamModal' || event.target.classList.contains('modal-close')) {
+                        infoStreamModal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    }
+                } else {
+                    infoStreamModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+            
+            infoStreamButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                openInfoStreamModal();
+            });
+            
+            infoStreamModal.addEventListener('click', closeInfoStreamModal);
+            
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && infoStreamModal.classList.contains('active')) {
+                    closeInfoStreamModal({target: {id: 'infoStreamModal'}});
+                }
+            });
+            
+            window.closeInfoStreamModal = closeInfoStreamModal;
         })();
 
         // Scroll Animation Module
