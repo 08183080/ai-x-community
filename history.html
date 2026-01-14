@@ -868,14 +868,14 @@
 
             function loadImage(img) {
                 if (img.dataset.src && !img.src) {
-                    img.src = encodeURI(img.dataset.src);
+                    img.src = `/api/file?path=${encodeURIComponent(img.dataset.src)}`;
                     img.onload = () => img.classList.add('loaded');
                     img.onerror = () => img.style.display = 'none';
                 }
             }
 
             function openModal(imagePath) {
-                modalImage.src = encodeURI(imagePath);
+                modalImage.src = `/api/file?path=${encodeURIComponent(imagePath)}`;
                 imageModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
@@ -981,7 +981,7 @@
             }
 
             function openHtmlModal(htmlPath) {
-                htmlFrame.src = encodeURI(htmlPath);
+                htmlFrame.src = `/api/file?path=${encodeURIComponent(htmlPath)}`;
                 htmlModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
@@ -993,7 +993,7 @@
             }
 
             function openPdfModal(pdfPath) {
-                pdfFrame.src = encodeURI(pdfPath);
+                pdfFrame.src = `/api/file?path=${encodeURIComponent(pdfPath)}`;
                 pdfModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
             }
@@ -1116,7 +1116,7 @@
                             card.addEventListener('click', () => {
                                 const modal = document.getElementById('imageModal');
                                 const modalImage = document.getElementById('modalImage');
-                                modalImage.src = encodeURI(img.path);
+                                modalImage.src = `/api/file?path=${encodeURIComponent(img.path)}`;
                                 modal.classList.add('active');
                                 document.body.style.overflow = 'hidden';
                             });
@@ -1145,13 +1145,13 @@
                                 if (isPdf) {
                                     const pdfModal = document.getElementById('pdfModal');
                                     const pdfFrame = document.getElementById('pdfFrame');
-                                    pdfFrame.src = encodeURI(doc.path);
+                                    pdfFrame.src = `/api/file?path=${encodeURIComponent(doc.path)}`;
                                     pdfModal.classList.add('active');
                                     document.body.style.overflow = 'hidden';
                                 } else {
                                     const htmlModal = document.getElementById('htmlModal');
                                     const htmlFrame = document.getElementById('htmlFrame');
-                                    htmlFrame.src = encodeURI(doc.path);
+                                    htmlFrame.src = `/api/file?path=${encodeURIComponent(doc.path)}`;
                                     htmlModal.classList.add('active');
                                     document.body.style.overflow = 'hidden';
                                 }
