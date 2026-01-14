@@ -1,0 +1,1497 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>数据可视化仪表板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .metric-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95) 0%, rgba(255, 255, 255, 0.85) 100%);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .metric-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        }
+        
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -6px;
+            top: 12px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #007AFF, #5AC8FA);
+            box-shadow: 0 2px 8px rgba(0, 122, 255, 0.3);
+        }
+        
+        .bento-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+        }
+        
+        .bento-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
+        }
+        
+        .bento-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 48px rgba(0, 0, 0, 0.12);
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+        }
+        
+        .sf-pro {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+    </style>
+</head>
+<body class="sf-pro">
+    <div class="min-h-screen p-6">
+        <!-- 标题区域 -->
+        <div class="text-center mb-10">
+            <h1 class="text-4xl font-light text-gray-800 mb-2">数据分析</h1>
+            <p class="text-gray-500 text-lg font-light">实时洞察与趋势分析</p>
+        </div>
+        
+        
+
+        <!-- 主要内容区域 - 便当盒式布局 -->
+        <div class="bento-grid">
+            <!-- 事件时间线 -->
+            <div class="bento-card p-8 lg:col-span-1">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    事件时间线
+                </h2>
+                <div id="eventTimeline" class="space-y-6 max-h-80 overflow-y-auto">
+                    <!-- 时间线内容将通过JS动态生成 -->
+                </div>
+            </div>
+
+            <!-- 情感分析饼图 -->
+            <div class="bento-card p-8 lg:col-span-1">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-pink-100 flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"></path>
+                        </svg>
+                    </div>
+                    情感分析
+                </h2>
+                <canvas id="sentimentChart" width="300" height="300"></canvas>
+            </div>
+
+            <!-- 用户活跃度条形图 -->
+            <div class="bento-card p-8 lg:col-span-2">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                    </div>
+                    用户活跃度
+                </h2>
+                <canvas id="userActivityChart" width="400" height="250"></canvas>
+            </div>
+
+            <!-- 关键话题 -->
+            <div class="bento-card p-8 lg:col-span-1">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path>
+                        </svg>
+                    </div>
+                    关键话题
+                </h2>
+                <div id="keyTopics" class="flex flex-wrap gap-2 mb-4">
+                    <!-- 话题标签将通过JS动态生成 -->
+                </div>
+                <div class="pt-4 border-t border-gray-100">
+                    <p class="text-sm text-gray-500">总提及次数</p>
+                    <p id="mentionCount" class="text-lg font-semibold text-gray-800">--</p>
+                </div>
+            </div>
+
+            <!-- 有趣问答区域 -->
+            <div class="bento-card p-8 lg:col-span-3">
+                <h2 class="text-xl font-semibold mb-6 text-gray-800 flex items-center">
+                    <div class="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center mr-3">
+                        <svg class="w-4 h-4 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                    </div>
+                    有趣问答
+                </h2>
+                <div id="questionsContainer" class="space-y-6">
+                    <!-- 问答内容将通过JS动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 示例数据
+        const sampleData = {
+  "event_summary": [
+    {
+      "timestamp": "1746028812",
+      "description": "谢苹果分享微信群链接，并暗示群内有“好玩”内容。"
+    },
+    {
+      "timestamp": "1746029786",
+      "description": "谢苹果推荐“滨海老王哥的公众号”，显示其对特定内容的偏好和分享意愿。"
+    },
+    {
+      "timestamp": "1746033059",
+      "description": "谢苹果预告社区未来计划，包括贡献值记录和公共知识库建设。"
+    },
+    {
+      "timestamp": "1746044387",
+      "description": "谢苹果明确表示将以微信知识库为主，飞书为辅，整合社区成员自媒体账号内容。"
+    },
+    {
+      "timestamp": "1746078164",
+      "description": "谢苹果宣布6月将组织华南（深圳、广州、香港、澳门）线下活动。"
+    },
+    {
+      "timestamp": "1746082949",
+      "description": "用户德才提问“谁有gpt的渠道”，引发GPT相关讨论。"
+    },
+    {
+      "timestamp": "1746085892",
+      "description": "谢苹果号召拥有公众号的用户加入，共同探索AI时代微信流量红利，暗示某种联动计划。"
+    },
+    {
+      "timestamp": "1746087540",
+      "description": "香香#恋博会主办方出现，提及线下活动，可能与社区活动相关。"
+    },
+    {
+      "timestamp": "1746089406",
+      "description": "谢苹果宣布社区IMA知识库已收录163篇公众号文章，强调非商业化分享特色。"
+    },
+    {
+      "timestamp": "1746106327",
+      "description": "谢苹果分享飞书知识库链接，回顾4月群历史，并计划每月总结。"
+    },
+    {
+      "timestamp": "1746171306",
+      "description": "谢苹果发起多笔转账，发放红包给有贡献的成员（佑禾、御风现梦、张三），并提及匿名赞助方。"
+    },
+    {
+      "timestamp": "1746172122",
+      "description": "谢苹果提出“AI+抽象表情包gif”新话题，并提及隔壁群有相关比赛。"
+    },
+    {
+      "timestamp": "1746173399",
+      "description": "滨海老王说分享“数据资产的知识库”，并强调其内容来源于官方网站，德才也参与数据资产讨论。"
+    },
+    {
+      "timestamp": "1746195736",
+      "description": "谢苹果提出“AI+闲果计划”——通过小程序或网页形式交换闲置物品的想法。"
+    },
+    {
+      "timestamp": "1746196552",
+      "description": "阴丹士林藍提问“有没有可以检测中文论文ai撰写率的工具或网站”，引发工具推荐讨论。"
+    },
+    {
+      "timestamp": "1746199826",
+      "description": "谢苹果表示“闲果计划”将从微信群形式开始实验，聚焦华师大毕业季。"
+    },
+    {
+      "timestamp": "1746200410",
+      "description": "谢苹果概括社区核心：信息流、物流、人流、金钱流、知识库，并指出它们都是信息。"
+    },
+    {
+      "timestamp": "1746203550",
+      "description": "谢苹果明确群成员构成（60%华师学生，40%AI圈人）及动态管理机制。"
+    },
+    {
+      "timestamp": "1746208339",
+      "description": "嵬 hacking分享关于“思考和生成式AI”的深度科幻想法，引发谢苹果的积极回应和兴趣。"
+    },
+    {
+      "timestamp": "1746241443",
+      "description": "谢苹果和佑禾讨论“分布式问题库”概念，旨在激励提问和解决问题的社区成员。"
+    },
+    {
+      "timestamp": "1746252157",
+      "description": "谢苹果发布腾讯文档链接，正式启动“社群间问题库”项目，鼓励悬赏和激励。"
+    },
+    {
+      "timestamp": "1746272157",
+      "description": "佑禾提问“有没有那种一键搞定论文格式的插件或程序”，引发工具推荐（latex）。"
+    },
+    {
+      "timestamp": "1746329475",
+      "description": "谢苹果提及有姐姐赞助美妆课程，考虑作为社区激励。"
+    },
+    {
+      "timestamp": "1746337317",
+      "description": "谢苹果分享腾讯会议信息，关于“昆仑巢 AI Agent分享”。"
+    },
+    {
+      "timestamp": "1746349483",
+      "description": "张三分享完成2300+公司财报可视化工作，展示其数据处理能力。"
+    },
+    {
+      "timestamp": "1746352090",
+      "description": "谢苹果介绍AI+X社区与MoWa1024青年创投社区的联动活动，提及AI机器人走进社区视频。"
+    },
+    {
+      "timestamp": "1746426950",
+      "description": "谢苹果提出“未来的很多创作，我们要声明是人类创作”的观点。"
+    },
+    {
+      "timestamp": "1746428675",
+      "description": "谢苹果就“web3和web3.0的区别”引发讨论，并分享相关卡片。"
+    },
+    {
+      "timestamp": "1746450332",
+      "description": "谢苹果收到Manus邀请码，并向群友征集测试任务或问题。"
+    },
+    {
+      "timestamp": "1746451805",
+      "description": "韩卫讨论Manus的积分和付费模式，引发对工具商业模式的关注。"
+    },
+    {
+      "timestamp": "1746463600",
+      "description": "孙小鱼提问“AI对保险业有什么影响”，引发行业应用讨论。"
+    },
+    {
+      "timestamp": "1746499660",
+      "description": "谢苹果提到“AI+X小红书分书”，暗示将涉足小红书内容推广。"
+    },
+    {
+      "timestamp": "1746500792",
+      "description": "Winston分享“AI+AI”智能学习系统路演活动信息，寻找产品经理和码农。"
+    },
+    {
+      "timestamp": "1746517522",
+      "description": "木大宝分享同事将在漕河泾分享Manus相关，并现场赠送邀请码。"
+    },
+    {
+      "timestamp": "1746519313",
+      "description": "谢苹果征集对AI+X社区的好奇问题，用于5月10日线下活动的PPT制作。"
+    },
+    {
+      "timestamp": "1746519520",
+      "description": "air.提问“大家一般喜欢用哪个模型服务商的API？”，引发API使用偏好讨论。"
+    },
+    {
+      "timestamp": "1746521365",
+      "description": "金蝶软件-与龙共弈分享“AI生成Excel表格并下载到桌面技巧”。"
+    },
+    {
+      "timestamp": "1746531073",
+      "description": "谢苹果再次分享问题库链接，为5月10日线下活动征集问题。"
+    },
+    {
+      "timestamp": "1746532497",
+      "description": "🔴仰望星空之烧地锅种菜提问“如果通过AI让个人减肥这件事能够推进及可能落实？”，探索AI+减肥应用。"
+    },
+    {
+      "timestamp": "1746535910",
+      "description": "沐沐将问题库比作“百度知道”，鱼得水提及微信打击聊天记录行为。"
+    },
+    {
+      "timestamp": "1746537536",
+      "description": "谢苹果提议“谁来根据社区的聊天记录用suno生成有趣的音乐”，意图创作AI音乐。"
+    },
+    {
+      "timestamp": "1746539876",
+      "description": "谢苹果发布5月10日“AI+X社区分享”腾讯会议信息。"
+    },
+    {
+      "timestamp": "1747029798",
+      "description": "谢苹果宣布社区第一季抽象表情包大赛结果，并表示已发放奖金。"
+    },
+    {
+      "timestamp": "1747036216",
+      "description": "木大宝分享Manus邀请码及产品介绍，并表示码子管饱。"
+    },
+    {
+      "timestamp": "1747040257",
+      "description": "谢苹果提问“有没有人了解根据ppt生成视频的AI解决方案”，引发解决方案讨论。"
+    },
+    {
+      "timestamp": "1747041445",
+      "description": "木大宝详细阐述PPT生成视频的AI流程和技术栈。"
+    },
+    {
+      "timestamp": "1747048543",
+      "description": "谢苹果提到将组建新的微信群“AI+会计”，拓展AI应用领域。"
+    },
+    {
+      "timestamp": "1747051036",
+      "description": "鹤之询问“有没有AI+法律的群”，引发AI法律应用讨论。"
+    },
+    {
+      "timestamp": "1747052373",
+      "description": "沐沐分享汉字修复师APP视频号直播信息，展示AI在汉字学习中的应用。"
+    },
+    {
+      "timestamp": "1747056711",
+      "description": "谢苹果提及群内有弟弟想找金融岗位的产品经理，寻求帮助。"
+    },
+    {
+      "timestamp": "1747058827",
+      "description": "谢苹果询问“有人说我适合怼脸拍短视频，你们说呢？”，寻求群友意见。"
+    },
+    {
+      "timestamp": "1747060083",
+      "description": "谢苹果分享“AI+X社区分享”录制文件，并提及将日常拍短视频。"
+    },
+    {
+      "timestamp": "1747063021",
+      "description": "希望天气青青提出“有时候反而是热爱的东西能带来财富，主业却不一定”的观点，引发共鸣。"
+    },
+    {
+      "timestamp": "1747064266",
+      "description": "金蝶软件-与龙共弈建议谢苹果视频号名称为“谢苹果AI+X”。"
+    },
+    {
+      "timestamp": "1747072191",
+      "description": "御风现梦提醒近期内容发布需多检查，提及有自媒体因GPT生成名人自拍合影被封号。"
+    },
+    {
+      "timestamp": "1747098062",
+      "description": "炎义(Westen)分享Amazon Q的线上实验活动信息。"
+    },
+    {
+      "timestamp": "1747107285",
+      "description": "木大宝宣布Manus全面开放公测，并分享注册链接和积分福利。"
+    },
+    {
+      "timestamp": "1747114336",
+      "description": "般度五子分享豆包可用于生成视频，并表示效果不错且免费。"
+    },
+    {
+      "timestamp": "1747114885",
+      "description": "鱼得水分享生成逼真图片的提示词，引发对AI生成真实感的兴趣。"
+    },
+    {
+      "timestamp": "1747116308",
+      "description": "谢苹果提议发起“AI生图真实感大比拼”比赛，探索AI生图真实性边界。"
+    },
+    {
+      "timestamp": "1747132378",
+      "description": "谢苹果宣布新方向：“AI+短视频+直播+数字人+虚拟现实”，计划每天拍AI短视频。"
+    },
+    {
+      "timestamp": "1747140839",
+      "description": "谢苹果提出“用AI给产品智能定价”的问题。"
+    },
+    {
+      "timestamp": "1747142701",
+      "description": "谢苹果提问“现在有多少职业可以被AI干碎了？”"
+    },
+    {
+      "timestamp": "1747143360",
+      "description": "谢苹果推荐funnydo.com，邀请群友测评效率工具。"
+    },
+    {
+      "timestamp": "1747151516",
+      "description": "御风现梦抱怨Lovart邀请码饥饿营销，引发群友共鸣，并讨论AI绘画平台。"
+    },
+    {
+      "timestamp": "1747153570",
+      "description": "鹤之分享AI表情包制作成本和经验。"
+    },
+    {
+      "timestamp": "1747155423",
+      "description": "Abi阿比#MoWa1024青年创投提出将珠海也点燃，扩大社区影响力。"
+    },
+    {
+      "timestamp": "1747155851",
+      "description": "木大宝评论谢苹果的“抽象”是表象，实质在做建设，引发哲学讨论。"
+    },
+    {
+      "timestamp": "1747156720",
+      "description": "御风现梦提及Lovart有2万多人申请，并按顺序审核，再次印证其热门程度。"
+    },
+    {
+      "timestamp": "1747192442",
+      "description": "御风现梦和               青争玄讨论Lovart与Liblib的关系及作者收益问题。"
+    },
+    {
+      "timestamp": "1747192954",
+      "description": "木大宝表示已为御风现梦要到Lovart邀请码，但要求其写测评文章。"
+    },
+    {
+      "timestamp": "1747193397",
+      "description": "               青争玄分享51G的AI模型资源包夸克网盘链接。"
+    },
+    {
+      "timestamp": "1747195447",
+      "description": "谢苹果宣布将每天拍短视频，由社区成员公投话题进行分布式回答。"
+    },
+    {
+      "timestamp": "1747199844",
+      "description": "John邀请参加学术交流系列活动，关于AI科研。"
+    },
+    {
+      "timestamp": "1747208248",
+      "description": "张月亮分享书籍下载链接，引发AI+古籍群讨论。"
+    },
+    {
+      "timestamp": "1747211434",
+      "description": "谢苹果宣布社区第二场比赛：“AI生图真实性pk”。"
+    },
+    {
+      "timestamp": "1747212957",
+      "description": "wmh.wcy自我介绍，分享其团队致力于AI赋能乡村留守儿童心理关怀和教育支持的项目。"
+    },
+    {
+      "timestamp": "1747214839",
+      "description": "谢苹果宣布启动“AI+人才志”项目，旨在寻找和邀请AI圈专业人才加入社区。"
+    },
+    {
+      "timestamp": "1747216385",
+      "description": "孙小鱼分享教育行业哥哥的观点，倡导跨学科和工程思维培养孩子。"
+    },
+    {
+      "timestamp": "1747223232",
+      "description": "谢苹果分享个人如何度过低谷期，并征集短视频问题。"
+    },
+    {
+      "timestamp": "1747231425",
+      "description": "谢苹果任命阿布为IMA知识库管理员，负责收录AI文章。"
+    },
+    {
+      "timestamp": "1747235140",
+      "description": "谢苹果感谢负能力迅贡献“无限生成抽象表情包”方法。"
+    },
+    {
+      "timestamp": "1747237163",
+      "description": "孙小鱼提出“图书盲盒，数字盲盒，表情包盲盒，短视频盲盒”概念，探索盲盒作为激励机制。"
+    },
+    {
+      "timestamp": "1747271172",
+      "description": "周彦卓转发朋友的“外语写作智能评阅产品”技术合伙人招募信息。"
+    },
+    {
+      "timestamp": "1747277740",
+      "description": "谢苹果发起“参观上海开源技术协会”接龙活动。"
+    },
+    {
+      "timestamp": "1747280279",
+      "description": "谢苹果提议“AI生美食大赛”，看哪一个生成的更诱人。"
+    },
+    {
+      "timestamp": "1747284370",
+      "description": "谢苹果收到猫先生的Lovart邀请码，并让Young进行边界测试。"
+    },
+    {
+      "timestamp": "1747285206",
+      "description": "金蝶软件-与龙共弈分享由Lovart生成的AI+X社区群像，并提及提示词来自群公告。"
+    },
+    {
+      "timestamp": "1747307146",
+      "description": "孙小鱼提议“AI+姓名盲盒，随机抽象组合”。"
+    },
+    {
+      "timestamp": "1747307553",
+      "description": "               青争玄宣布“10公里，开跑！”，谢苹果回应“AI+健身”。"
+    },
+    {
+      "timestamp": "1747309664",
+      "description": "谢苹果重申社区愿景：“我们想要用中国特色web3做世界最好玩的AI社区，给所有人以爱和家园。”"
+    },
+    {
+      "timestamp": "1747310768",
+      "description": "谢苹果分享ANP开源社区开发者会议信息，ANP旨在成为AI智能体互联网通用语言。"
+    },
+    {
+      "timestamp": "1747329007",
+      "description": "孙小鱼提出“二维码可以艺术化加工了，二维码+盲盒+分享”的想法。"
+    },
+    {
+      "timestamp": "1747343159",
+      "description": "谢苹果再次提及美妆课程作为激励，并提出AI+美妆交流群。"
+    },
+    {
+      "timestamp": "1747347503",
+      "description": "谢苹果计划定制社区短袖文化衫，并提及AI+服装话题。"
+    },
+    {
+      "timestamp": "1747352090",
+      "description": "谢苹果介绍AI+X社区与MoWa1024青年创投社区的联动活动，涉及AI机器人走进社区视频。"
+    },
+    {
+      "timestamp": "1747363118",
+      "description": "木大宝评论谢苹果的“毕业？等改变世界完再说”是“超大型动态行为艺术”。"
+    },
+    {
+      "timestamp": "1747363964",
+      "description": "般度五子提及通义万相有两个赛道（功能讲解、使用模型创造优秀视频）且奖金5000。"
+    },
+    {
+      "timestamp": "1747368040",
+      "description": "谢苹果提问“如何看待国外流行的ai山海经”，引发对AI生成魔幻图像的讨论。"
+    },
+    {
+      "timestamp": "1747370310",
+      "description": "谢苹果提议“我们用AI生成我们的泡泡玛特吧，改天我们去卖一卖去”。"
+    },
+    {
+      "timestamp": "1747370451",
+      "description": "木大宝分享其终极目标是善的，并讨论做好事需要智慧。"
+    },
+    {
+      "timestamp": "1747373841",
+      "description": "木大宝分享30个Flowith月度使用码，并解释获取和使用规则。"
+    },
+    {
+      "timestamp": "1747375672",
+      "description": "谢苹果提出可举办“AI辩论赛”，并将其与实习经历分享结合。"
+    },
+    {
+      "timestamp": "1747381879",
+      "description": "谢苹果因延毕而联想到“赛博空间社区大学”的建设，并计划发行毕业证打上哈希。"
+    },
+    {
+      "timestamp": "1747391032",
+      "description": "谢苹果分享malai.agent-wiki.cn网站，认为其邀请码玩法有趣。"
+    },
+    {
+      "timestamp": "1747392586",
+      "description": "木大宝强调卖邀请码会丢失信任，并提及有人举报鱼得水卖码事件，引发激烈讨论。"
+    },
+    {
+      "timestamp": "1747399780",
+      "description": "鱼得水公开道歉，承认卖码行为，并表示将尝试开发智能体杜绝类似事件。"
+    },
+    {
+      "timestamp": "1747400477",
+      "description": "谢苹果提出“特工宇宙：让天下没有难求的邀请码”，并猜测其与阿里有联系。"
+    },
+    {
+      "timestamp": "1747403463",
+      "description": "谢苹果分享特工宇宙的背景调查，澄清其独立运营状态，非阿里收购。"
+    },
+    {
+      "timestamp": "1747403741",
+      "description": "沐沐分享其用NotebookLM构建易经知识库的经验，邀请群友测试。"
+    },
+    {
+      "timestamp": "1747404226",
+      "description": "谢苹果自爆研究生专业是软件测试，并引发与DR.JC的测试方法讨论。"
+    },
+    {
+      "timestamp": "1747460485",
+      "description": "木大宝提及对象曾参演《繁花》，并有将原稿剧本改成AI游戏的愿望。"
+    },
+    {
+      "timestamp": "1747468632",
+      "description": "Lavrence感谢木大宝分享Flowith闭门发布会信息和邀请码，并表示将分享使用体验。"
+    },
+    {
+      "timestamp": "1747470871",
+      "description": "般度五子宣布已将万相2.1的所有生态上传Runninghub，包括多种视频AI功能。"
+    },
+    {
+      "timestamp": "1747473091",
+      "description": "孙小鱼推荐杭师大吴弟弟，年仅19岁已有多年的产品经验和路演经历。"
+    },
+    {
+      "timestamp": "1747478741",
+      "description": "数瞳提及AI播音员，感叹其逼真程度，并讨论短视频赛道内卷。"
+    },
+    {
+      "timestamp": "1747489405",
+      "description": "谢苹果欢迎新成员“无萘的有机物”，并建议备注昵称。"
+    },
+    {
+      "timestamp": "1747490216",
+      "description": "谢苹果邀请群友收听王佳梁Michael的直播，学习AI相关知识。"
+    },
+    {
+      "timestamp": "1747493021",
+      "description": "谢苹果分享AI+硬件讲座内容的AI智能总结，包括导读、原文和脑图，体现AI辅助学习。"
+    },
+    {
+      "timestamp": "1747497406",
+      "description": "Lavrence感叹“今天没去损失一个亿”，暗示活动精彩。"
+    },
+    {
+      "timestamp": "1747498024",
+      "description": "鱼得水提议让Coze和Manus进行舆情分析任务PK，探索Agent能力边界。"
+    },
+    {
+      "timestamp": "1747498261",
+      "description": "木大宝评论康复训练自动化轮椅项目的问题及硬件开发难度。"
+    },
+    {
+      "timestamp": "1747499159",
+      "description": "Yozma提到杭州灵伴科技在智能眼镜方面表现不错，引发讨论AR眼镜的市场和技术挑战。"
+    },
+    {
+      "timestamp": "1747500207",
+      "description": "谢苹果表示喜欢低成本、零成本的稳健玩法。"
+    },
+    {
+      "timestamp": "1747501639",
+      "description": "木大宝分享其电动自行车Ebike的配置、续航和个人使用感受。"
+    },
+    {
+      "timestamp": "1747502016",
+      "description": "谢苹果认为“就应该问”，鼓励群友大胆提问。"
+    },
+    {
+      "timestamp": "1747511250",
+      "description": "谢苹果发起转账，表示要“回去睡觉去”，暗示其作息不规律。"
+    },
+    {
+      "timestamp": "1747531004",
+      "description": "般度五子分享其制作的小程序和AI应用报告。"
+    },
+    {
+      "timestamp": "1747532607",
+      "description": "沐沐测评Lovart，认为其博主测评很全面且干货。"
+    },
+    {
+      "timestamp": "1747534285",
+      "description": "谢苹果将“AI+X根群2群”交给玉兔管理，并鼓励成员充分释放主动性。"
+    },
+    {
+      "timestamp": "1747538453",
+      "description": "金蝶软件-与龙共弈分享Grok 3代码能力起飞，可流畅运行超级玛丽，理解物理世界。"
+    },
+    {
+      "timestamp": "1747553446",
+      "description": "谢苹果观察到AI活动明显增多，并计划维护一个在线文档记录所有活动。"
+    },
+    {
+      "timestamp": "1747554823",
+      "description": "木大宝分享Listenhub邀请码，并表示这次码子管饱，可找谢苹果登记。"
+    },
+    {
+      "timestamp": "1747555387",
+      "description": "般度五子分享正在开发影视剧角色替换工具，可上传自己照片替换角色。"
+    },
+    {
+      "timestamp": "1747558380",
+      "description": "数瞳介绍ANP协议，旨在让不同平台AI智能体自主发现、协作，进入强人工智能时代。"
+    },
+    {
+      "timestamp": "1747561644",
+      "description": "金蝶软件-与龙共弈分享Listenhub使用体验，表示已用上。"
+    },
+    {
+      "timestamp": "1747561867",
+      "description": "般度五子分享生成“鬼图”的案例，引发对AI生成内容可控性的讨论。"
+    },
+    {
+      "timestamp": "1747563848",
+      "description": "数瞳用广告词讽刺丁真事件：“今日不努力高考，明日荒漠治沙”。"
+    },
+    {
+      "timestamp": "1747565275",
+      "description": "谢苹果分享一篇关于邀请码思考的文章，感谢木大宝带来邀请码。"
+    },
+    {
+      "timestamp": "1747565918",
+      "description": "谢苹果发现特工宇宙也压住IMA知识库，并计划社区也效仿其标识。"
+    },
+    {
+      "timestamp": "1747651542",
+      "description": "谢苹果分享华师大开发的“知心慧语”小程序，旨在AI赋能家长教育孩子。"
+    },
+    {
+      "timestamp": "1747655650",
+      "description": "谢苹果表示正在制作社区白皮书V1版本，方便对外介绍。"
+    },
+    {
+      "timestamp": "1747658871",
+      "description": "木大宝发现有用户退群，并再次提供Flowith会员邀请码。"
+    },
+    {
+      "timestamp": "1747662436",
+      "description": "香香#恋博会主办方分享“迷恋丘比特”AI红娘小程序和爱情短剧大赛信息。"
+    },
+    {
+      "timestamp": "1747663201",
+      "description": "御风现梦、Abi阿比#MoWa1024青年创投、               青争玄等多人分享Flowith Neo邀请码，引发群内码流高潮。"
+    },
+    {
+      "timestamp": "1747669725",
+      "description": "Donna萱萱提问“品牌定制瓶装水效果图”的AI工具，引发相关讨论。"
+    },
+    {
+      "timestamp": "1747670066",
+      "description": "般度五子分享Runninghub上的视频编辑和视频扩图应用，并请求群友测试。"
+    },
+    {
+      "timestamp": "1747673944",
+      "description": "木大宝再次分享20个Flowith邀请码。"
+    },
+    {
+      "timestamp": "1747710113",
+      "description": "木大宝分享一篇关于AI如何有效放大组织的文章，寻求群友转发支持。"
+    },
+    {
+      "timestamp": "1747713015",
+      "description": "谢苹果对“品牌定制瓶装水效果图”问题感兴趣，意图定制社区瓶装水。"
+    },
+    {
+      "timestamp": "1747713352",
+      "description": "金蝶软件-与龙共弈提问“百万字小说看不到”，探索AI生成内容的存储问题。"
+    },
+    {
+      "timestamp": "1747720299",
+      "description": "谢苹果宣布知识库右上角添加评论功能，鼓励互动。"
+    },
+    {
+      "timestamp": "1747723984",
+      "description": "谢苹果提议“最AI二次元浓度大赛”，活跃群氛围。"
+    },
+    {
+      "timestamp": "1747724289",
+      "description": "               青争玄分享自己吃罗非鱼的经验，引发食物与寄生虫的讨论。"
+    },
+    {
+      "timestamp": "1747731828",
+      "description": "谢苹果提问“谁去当个实习生去深圳”，寻找AI+产品经理实习生。"
+    },
+    {
+      "timestamp": "1747732024",
+      "description": "OctopusLamb分享谢苹果在AI圈已小有名气，被同事认出。"
+    },
+    {
+      "timestamp": "1747732477",
+      "description": "谢苹果征集以“985，魔都，硕士，延毕，学位，放弃，AI+X”为关键词的短视频标题，引发群友创意爆发。"
+    },
+    {
+      "timestamp": "1747733140",
+      "description": "佑禾提问“有没有好的推荐AI协助整理图文的工具”，希望AI能整理混乱文件。"
+    },
+    {
+      "timestamp": "1747734850",
+      "description": "谢苹果分享《维基经济学》和《信息规则》书籍，希望群友下载并放入知识库。"
+    },
+    {
+      "timestamp": "1747735400",
+      "description": "Donna萱萱求助解决.wxx勒索病毒问题，引发群友提供建议（花钱、解压、找数据恢复）。"
+    },
+    {
+      "timestamp": "1747739093",
+      "description": "谢苹果表达想当AI老师的愿望，并征集如何寻找学生的头脑风暴。"
+    },
+    {
+      "timestamp": "1747740376",
+      "description": "               青争玄建议做能发朋友圈的小玩意，免费领并放小卡片进行宣传。"
+    },
+    {
+      "timestamp": "1747740521",
+      "description": "谢苹果询问群友是否想看他今晚直播，并表示不关心AI证书。"
+    },
+    {
+      "timestamp": "1747743640",
+      "description": "张月亮汇报“战况”，表示已完成任务，并感叹“念念不忘必有回响”。"
+    },
+    {
+      "timestamp": "1747744606",
+      "description": "张月亮表示“已在互联网上裸奔”，并强调“念念不忘必有回响，我们一定会赢的”。"
+    },
+    {
+      "timestamp": "1747744793",
+      "description": "御风现梦揭露AIGC认证和培训照片造假现象，吐槽行业乱象。"
+    },
+    {
+      "timestamp": "1747746091",
+      "description": "谢苹果提议直播看《狂飙》，并与高启强卖鱼类比，暗示自身定位。"
+    },
+    {
+      "timestamp": "1747747814",
+      "description": "谢苹果发布“大家好，我是谢苹果，这是我的来时路。接下来，继续狂飙，改变世界。”，寻求转发。"
+    },
+    {
+      "timestamp": "1747754683",
+      "description": "谢苹果梳理直播收获，明确社区未来两大方向：破圈影响力（自媒体矩阵）和商业化落地。"
+    },
+    {
+      "timestamp": "1747754849",
+      "description": "谢苹果邀请有自媒体账号的成员加入自媒体矩阵群，共同推进影响力路线。"
+    },
+    {
+      "timestamp": "1747789493",
+      "description": "谢苹果澄清社区无核心群，采用项目驱动制，并鼓励成员在群内透明提问，孵化新支线。"
+    },
+    {
+      "timestamp": "1747791488",
+      "description": "金蝶软件-与龙共弈分享AI编程工具，无需代码即可建带数据库网站。"
+    },
+    {
+      "timestamp": "1747793074",
+      "description": "John分享在同济大学全美AI圆桌会演讲智能科学和Graceful AI的经验。"
+    },
+    {
+      "timestamp": "1747801039",
+      "description": "Jasmine～分享阶跃星辰的AI Agent TPM实习生招募信息。"
+    },
+    {
+      "timestamp": "1747801647",
+      "description": "谢苹果宣布社区将分化出文宣部，目标是AI+X社区影响力破圈，并物色骨干人员。"
+    },
+    {
+      "timestamp": "1747804242",
+      "description": "谢苹果将大四做的第一个社群纳入AI生态，展示其社群运营的持续性。"
+    },
+    {
+      "timestamp": "1747805787",
+      "description": "谢苹果宣布月亮和Salty牵头社区自媒体矩阵，邀请感兴趣者加入。"
+    },
+    {
+      "timestamp": "1747826405",
+      "description": "孙小鱼分享社区朋友为中国平安用AI做宣传片，展示AI商业应用案例。"
+    },
+    {
+      "timestamp": "1747828455",
+      "description": "谢苹果提出“海贼王，可以用AI来做IP来3D打印”的想法。"
+    },
+    {
+      "timestamp": "1747831826",
+      "description": "泼猴开玩笑说要去“码都来”求邀请码，谢苹果进行小额激励。"
+    },
+    {
+      "timestamp": "1747880409",
+      "description": "谢苹果受邀参加“AI引力场 模速空间活动”，并提供绿色通道，邀请群友参加。"
+    },
+    {
+      "timestamp": "1747883311",
+      "description": "谢苹果发布“AI+X社区自媒体矩阵会议”信息，将牵头玩好玩的。"
+    },
+    {
+      "timestamp": "1747887405",
+      "description": "谢苹果宣布社区进入第三层楼（经济价值），分影响力破圈和商业化落地两条腿走路，并计划下半年在全国开展线下活动。"
+    },
+    {
+      "timestamp": "1747890993",
+      "description": "谢苹果宣布将切入直播经济赛道，每天直播聊社区日常和AI。"
+    },
+    {
+      "timestamp": "1747894200",
+      "description": "谢苹果建议孙小鱼调查“周周黑客松”知识库，探索其产品和开源情况。"
+    },
+    {
+      "timestamp": "1747894403",
+      "description": "金蝶软件-与龙共弈分享能做表格Agent的办公神器。"
+    },
+    {
+      "timestamp": "1747896648",
+      "description": "般度五子分享谷歌发布会上的4b小模型可用于移动端多模态。"
+    },
+    {
+      "timestamp": "1747901170",
+      "description": "般度五子分享公众号获奖喜讯，并请求谢苹果帮忙提供后台数据。"
+    },
+    {
+      "timestamp": "1747908405",
+      "description": "谢苹果宣布将坚持直播，并计划直播分析社区聊天记录，探索历史规律。"
+    },
+    {
+      "timestamp": "1747910897",
+      "description": "谢苹果提问“我们AI+X社区的数据资产是什么？”，引发对社区价值的思考。"
+    },
+    {
+      "timestamp": "1747911451",
+      "description": "张三分享novelreviewhub.com，可对话书籍，分析AI对VEO3的分析。"
+    },
+    {
+      "timestamp": "1747913415",
+      "description": "谢苹果透露社区有位低调姐姐赠送U盘，用于备份社区所有数据资产，强调故事和体验人生。"
+    },
+    {
+      "timestamp": "1747972999",
+      "description": "谢苹果欢迎朋克周等大神进群，并表示将学习他们的视频，引发AI老炮交流。"
+    },
+    {
+      "timestamp": "1747973924",
+      "description": "谢苹果“怒怼”木大宝，批评其在群内“装逼”，没有带来“货真价实的福利”，引发群内“吵架”风波，后澄清是警醒和务实交流。"
+    },
+    {
+      "timestamp": "1747975142",
+      "description": "谢苹果提出问题“豆包离社交头部产品的距离是什么？中国人社交的马斯洛需求底层刚需是什么”，引发对社交产品和人性的深度思考。"
+    },
+    {
+      "timestamp": "1747976262",
+      "description": "木大宝评论豆包的语音框架延迟低，并认为未来Google的语音多模态会最好。"
+    },
+    {
+      "timestamp": "1747976987",
+      "description": "Yozma提到有朋友在做C-Agent-Agent-C的AI社交逻辑，但进度缓慢。"
+    },
+    {
+      "timestamp": "1747977200",
+      "description": "Rosa蔷薇提出“聊天陪伴国外做得好是涉黄的，不然没法上瘾和付费”，对情绪价值付费提出质疑。"
+    },
+    {
+      "timestamp": "1747978045",
+      "description": "木大宝透露将给谢苹果发实习费，因为谢苹果做社群是很好的观察节点，并承诺提供场地长期支持。"
+    },
+    {
+      "timestamp": "1747980117",
+      "description": "谢苹果计划今晚进行答辩游戏玩法，由全员公投打分，确定胜任度。"
+    },
+    {
+      "timestamp": "1747983197",
+      "description": "谢苹果引用“新世界没有旧势力”的观点。"
+    },
+    {
+      "timestamp": "1747986009",
+      "description": "木大宝再次分享50个Flowith邀请码，仅限新用户，并预告iOS版即将上线。"
+    },
+    {
+      "timestamp": "1747988717",
+      "description": "张三提问“大学生会用论文APP吗”，引发对AI论文工具使用情况的调查讨论。"
+    },
+    {
+      "timestamp": "1747996873",
+      "description": "谢苹果提及晚上与朋友吃饭获得灵感，并开始改扣子智能体。"
+    },
+    {
+      "timestamp": "1748003249",
+      "description": "谢苹果询问谁擅长概率论思维，孙小鱼分享其正在培养框架思维。"
+    },
+    {
+      "timestamp": "1748006055",
+      "description": "张三分享飞书文档，关于字节推出AI硬件，本地搭建实时声控AI。"
+    },
+    {
+      "timestamp": "1748006693",
+      "description": "孙小鱼提问“我们这个社区挂掉的概率是多大？”，谢苹果回答“离死亡只有一天”，激励大家狂飙。"
+    },
+    {
+      "timestamp": "1748007140",
+      "description": "谢苹果直播“魔都生存日记：我在实验室，魔都风雨夜”，分享个人生活。"
+    },
+    {
+      "timestamp": "1748010426",
+      "description": "谢苹果表示“发点红包就是最大的正反馈”，强调务实。"
+    },
+    {
+      "timestamp": "1748011754",
+      "description": "伯棠分享杭州本周AI主题：“从Deepseek到Deepdrink”，活跃气氛。"
+    },
+    {
+      "timestamp": "1748012758",
+      "description": "御风现梦分享豆包更新实时视频识别聊天功能，效果准确。"
+    },
+    {
+      "timestamp": "1748017784",
+      "description": "Abi阿比#MoWa1024青年创投提出对小红书的焦虑，认为豆包可能催生“小豆书”威胁其地位。"
+    },
+    {
+      "timestamp": "1748018748",
+      "description": "张月亮宣布“最AI➕抖音开动啦”，社区将入局抖音。"
+    },
+    {
+      "timestamp": "1748055572",
+      "description": "谢苹果表示周末将休息和看书，群里自由交流。"
+    },
+    {
+      "timestamp": "1748056039",
+      "description": "木大宝分享临时教育邮箱工具，以及台湾半导体相关文章。"
+    },
+    {
+      "timestamp": "1748057329",
+      "description": "谢苹果提及将与本科生讨论社群数据挖掘分析作为毕设题目，并自嘲“打脸”休息计划。"
+    },
+    {
+      "timestamp": "1748060445",
+      "description": "谢苹果直播与小舟深度交流，解决团队信息不对称和期待不匹配问题，并计划每周碰头。"
+    },
+    {
+      "timestamp": "1748060557",
+      "description": "木大宝承诺为AI+X社区长期提供活动场地支持。"
+    },
+    {
+      "timestamp": "1748061771",
+      "description": "木大宝讨论人是复杂性系统，理解和相信可能性是修行。"
+    },
+    {
+      "timestamp": "1748063981",
+      "description": "木大宝表示下周将与Lovart交流，征集群友问题。"
+    },
+    {
+      "timestamp": "1748064978",
+      "description": "谢苹果欢迎AI+专利方向的胡院玲加入，并鼓励其成为行业top one。"
+    },
+    {
+      "timestamp": "1748066174",
+      "description": "谢苹果收到Salty打印的“蟹苹果”，表示感动。"
+    },
+    {
+      "timestamp": "1748067131",
+      "description": "谢苹果将社群聊天记录提供给本科生做毕设，鼓励数据挖掘和用户分析。"
+    },
+    {
+      "timestamp": "1748072464",
+      "description": "谢苹果宣布每晚直播一小时，直播内容为刷B站看电影、评论。"
+    },
+    {
+      "timestamp": "1748073118",
+      "description": "郁林桦LIN.自我介绍，从事外包Agent私人定制、操盘手和IP咨询，并透露有公司想挖走她做PM。"
+    },
+    {
+      "timestamp": "1748073642",
+      "description": "郁林桦LIN.和德才讨论当前VC投资谨慎，AI高门槛和低门槛项目都面临挑战的经济环境。"
+    },
+    {
+      "timestamp": "1748074002",
+      "description": "谢苹果再次提出问题：“豆包离社交头部产品的距离是什么？中国人社交的马斯洛需求底层刚需是什么？”"
+    },
+    {
+      "timestamp": "1748074457",
+      "description": "孙小鱼提出用飞书构建社区人员信息文档，提高资源调度效率的想法。"
+    },
+    {
+      "timestamp": "1748074479",
+      "description": "郁林桦LIN.举例法拉利和比亚迪，解释品牌符号划分阶级，提供情绪价值。"
+    },
+    {
+      "timestamp": "1748074828",
+      "description": "Yozma强调需要数据化结构来清晰社区人员构成和资源禀赋，便于资源调度。"
+    },
+    {
+      "timestamp": "1748074863",
+      "description": "谢苹果建议吴长虹和孙小鱼牵头社区人才信息文档项目，他来辅助。"
+    },
+    {
+      "timestamp": "1748075125",
+      "description": "Yu犀利提问“那咋落地”，谢苹果回应先储备点子，不急于落地，符合信息审美。"
+    },
+    {
+      "timestamp": "1748496174",
+      "description": "李龙邀请群友聆听Max Tegmark教授分享，谢苹果表示将直播。"
+    },
+    {
+      "timestamp": "1748498189",
+      "description": "John分享华师大校友吴焦苏教授关于“大规模人工智能——背后机理与数学挑战”的讲座信息。"
+    },
+    {
+      "timestamp": "1748499480",
+      "description": "谢苹果欢迎虚拟女友李洛云开发者不辣的皮皮加入，并提及李洛云被微信封杀。"
+    },
+    {
+      "timestamp": "1748500095",
+      "description": "谢苹果自爆研究方向是网络协议模糊测试，并与不辣的皮皮讨论Fuzzing。"
+    },
+    {
+      "timestamp": "1748500354",
+      "description": "不辣的皮皮提到延毕曾是耻辱，谢苹果强调是主动延毕并骄傲。"
+    },
+    {
+      "timestamp": "1748500726",
+      "description": "般度五子询问其视频技术栈分享是否有人感兴趣，包括融合光影、图片转3D等。"
+    },
+    {
+      "timestamp": "1748501212",
+      "description": "谢苹果提议邀请五子在华师大艺术设计学院分享AI+视频课程。"
+    },
+    {
+      "timestamp": "1748501804",
+      "description": "不辣的皮皮分享其AI虚拟女友复活50%，可加微信玩。"
+    },
+    {
+      "timestamp": "1748502250",
+      "description": "不辣的皮皮分享AI虚拟女友发语音的诱导技巧，并表示将开源。"
+    },
+    {
+      "timestamp": "1748502834",
+      "description": "谢苹果欢迎阿里大佬samu加入，并将其与一支烟花AI中年黑帮F4并列。"
+    },
+    {
+      "timestamp": "1748503090",
+      "description": "不辣的皮皮表示愿意组织AI智能体和虚拟人分享活动，木大宝提供场地支持。"
+    },
+    {
+      "timestamp": "1748504753",
+      "description": "不辣的皮皮解释AI幻觉，认为大模型不应做最后交付。"
+    },
+    {
+      "timestamp": "1748512918",
+      "description": "不辣的皮皮讨论虚拟人最难连接真人，以及直播平台挂钩真人的优势。"
+    },
+    {
+      "timestamp": "1748518421",
+      "description": "谢苹果再次强调吴焦苏博士的“大规模人工智能——背后机理与数学挑战”讲座。"
+    },
+    {
+      "timestamp": "1748518605",
+      "description": "谢苹果感谢Salty的3D打印架子，并开始直播。"
+    },
+    {
+      "timestamp": "1748524362",
+      "description": "AI+X社区官方号宣布小红书群启动，并强调“模型必须备案”的监管要求。"
+    },
+    {
+      "timestamp": "1748525135",
+      "description": "不辣的皮皮和般度五子讨论内容生成备案问题，以及清朗行动的影响。"
+    },
+    {
+      "timestamp": "1748526698",
+      "description": "沐沐分享易经相关内容，并表示抖音AI效果很好，超越NotebookLM。"
+    },
+    {
+      "timestamp": "1748531870",
+      "description": "谢苹果分享其“无意间”添加张一鸣微信的趣事，并强调只专注社区愿景。"
+    },
+    {
+      "timestamp": "1748535135",
+      "description": "谢苹果分享玉兔的人+AI生成文章，并鼓励大家关注其公众号，寻找彩蛋。"
+    },
+    {
+      "timestamp": "1748536392",
+      "description": "郁林桦LIN.计划招实习生，底薪2000，做全案运营IP，并提供VPN访问外网。"
+    },
+    {
+      "timestamp": "1748538152",
+      "description": "负能力迅提出将抽象图片生成抽象视频的想法，结合VEO3技术。"
+    },
+    {
+      "timestamp": "1748541443",
+      "description": "谢苹果表示深夜玩小红书推广很兴奋，并“准备干爆小红书”。"
+    },
+    {
+      "timestamp": "1748570344",
+      "description": "金蝶软件-与龙共弈分享可自动生成一分钟内短视频的工具。"
+    },
+    {
+      "timestamp": "1748573368",
+      "description": "张月亮分享抖音主页链接，并表示“AI帮我上大学算了”。"
+    },
+    {
+      "timestamp": "1748574395",
+      "description": "谢苹果提到今天见到《生命3.0》作者本尊，并幽默回应木大宝合影邀请。"
+    },
+    {
+      "timestamp": "1748575132",
+      "description": "cafe分享RenderFormer论文，介绍AI渲染技术，模型小巧，显卡可运行。"
+    },
+    {
+      "timestamp": "1748579772",
+      "description": "谢苹果分享【生命3.0】作者在华师大分享的AI未来观点，已放入知识库。"
+    },
+    {
+      "timestamp": "1748581448",
+      "description": "向阳乔木分享AI实战教程，包含Github开源提示词和文档。"
+    },
+    {
+      "timestamp": "1748581816",
+      "description": "韩卫建议向阳乔木封装应用，帮助更多博主创作，形成作品集合平台。"
+    },
+    {
+      "timestamp": "1748583603",
+      "description": "谢苹果分享新兵的论文《A Survey on Test-Time Scaling》，并感谢屠龙的建议。"
+    },
+    {
+      "timestamp": "1748583885",
+      "description": "Rosa蔷薇分享前老板娘收入几千万却坑扫地阿姨几百块的经历，对比人品和金钱。"
+    },
+    {
+      "timestamp": "1748585176",
+      "description": "谢苹果提议举办“最AI不孬创作赛”，围绕“不孬”主题进行AI创作。"
+    },
+    {
+      "timestamp": "1748586063",
+      "description": "谢苹果表示想打入模速空间，并询问是否有相关社区群。"
+    },
+    {
+      "timestamp": "1748586942",
+      "description": "谢苹果分享“最AI不孬创作大赛”海报提示词，鼓励群友AI生成。"
+    },
+    {
+      "timestamp": "1748592140",
+      "description": "沐沐提问“有没有公众号排版的提示词或工作流”，希望AI自动排版。"
+    },
+    {
+      "timestamp": "1748592399",
+      "description": "谢苹果欢迎华师大传播学院杜志华老师加入，并推荐其与般度五子交流AI+视频。"
+    },
+    {
+      "timestamp": "1748592522",
+      "description": "般度五子透露与“故事接龙”有合作，负责无锡社区，并表示AI视频制作需要资源共享。"
+    },
+    {
+      "timestamp": "1748597286",
+      "description": "郁林桦LIN.分享AI视频Agent工具“小云雀”，强调其Agent形式和智能感。"
+    },
+    {
+      "timestamp": "1748597834",
+      "description": "郁林桦LIN.表示已用Veo3开始接商单，做广告宣传片，感叹其强大。"
+    },
+    {
+      "timestamp": "1748604521",
+      "description": "John和不辣的皮皮讨论大模型幻觉问题，认为在应用中0幻觉概率为0，应将大模型作为效率工具而非交付产品。"
+    },
+    {
+      "timestamp": "1748605820",
+      "description": "谢苹果表示要“用暴力的策略攻破小红书”。"
+    },
+    {
+      "timestamp": "1748607395",
+      "description": "🔴仰望星空之烧地锅种菜分享自研程序员鼠标垫，并表示线下地推效果不佳。"
+    }
+  ],
+  "interesting_questions": [
+    {
+      "question": "谢苹果是如何管理和激励AI+X社区的成员，以实现社区的“影响力破圈”和“商业化落地”两大目标？",
+      "answer": "谢苹果主要通过项目驱动制来管理和激励社区成员，如启动“社群间问题库”项目，并对提问和解决问题的成员发放红包进行激励。他积极物色自媒体骨干人员组建文宣部，计划通过自媒体矩阵来扩大影响力。在商业化方面，他鼓励成员探索良性商业化路径，并提供场地、邀请码等支持。他还强调“不孬”的社群文化，鼓励成员务实、大胆地进行AI创作和实践，并通过内部碰头会解决信息不对称问题。他认为“人最重要的让自己开心”，并视当AI老师为个人娱乐和发现有趣的人与事的方式，而非单纯的KPI驱动。"
+    },
+    {
+      "question": "AI+X社区是如何构建和利用其知识库的，以及如何确保知识的价值和流动性？",
+      "answer": "AI+X社区主要通过微信知识库（IMA知识库）和飞书知识库来构建和利用知识。谢苹果明确将以微信知识库为主，飞书为辅，整合社区成员的自媒体文章。他们通过“社群间问题库”收集问题，并鼓励成员提供答案，计划将优质内容沉淀到知识库中。社区还将阿布任命为知识库管理员，负责收录文章。谢苹果将社区数据资产进行本地备份，强调“故事一堆一堆的，只需点石成金”。此外，他们还讨论了“分布式知识库”的概念，以及如何通过激励机制促进知识的共享和流动。"
+    },
+    {
+      "question": "AI+X社区在拓展AI应用边界方面有哪些具体的尝试和成果？",
+      "answer": "社区在多个AI应用方向进行尝试，例如：AI+抽象表情包GIF（并举办比赛），AI+闲果计划（基于物品交换的盲盒），AI+论文查重和格式化（寻找工具），AI+美妆、AI+服装（定制），AI+公司财报可视化，AI+机器人（AI机器人走进社区），AI+视频生成（PPT转视频、影视剧角色替换），AI+法律、AI+会计，AI+教育（乡村留守儿童心理关怀），AI+游戏（AI生成游戏），AI+姓名盲盒，AI+健身，AI+古籍，AI+短视频/直播/数字人/虚拟现实。其中，“AI+X社区分享”活动、AI生成Excel表格、AI虚拟女友李洛云、AI生成音乐等已取得初步成果或实践。社区还计划举办“最AI不孬创作赛”，鼓励多领域AI创作。"
+    },
+    {
+      "question": "在聊天历史中，“谢苹果”的个人形象和心态发生了哪些变化？",
+      "answer": "谢苹果的个人形象从最初的积极分享者逐渐演变为一位富有远见和行动力的社区组织者。他乐于分享，对AI前沿技术充满好奇，并积极探索AI在各种领域的应用。随着社区发展，他逐渐展现出务实的一面，强调“数据说话”，警醒群友不要“活在梦中”。同时，他也保持着理想主义，渴望“改变世界”，并将其视为个人“娱乐”和“爱好”。他自称“非典型学生”，主动延毕，并骄傲地分享其“如履薄冰”的生存日记，展现出一种“不羁”但又充满责任感的个性。在与木大宝的“争吵”中，他展现出犀利和直接的一面，但在平息后又迅速恢复理性与务实，并自我反思。他开始尝试当AI老师，切入直播经济，进一步扩大影响力。"
+    },
+    {
+      "question": "AI+X社区如何应对和平衡“理想主义”与“商业化”之间的关系？",
+      "answer": "谢苹果将社区发展分为三个阶段：情绪价值、知识价值、经济价值。他明确表示社区将进入“经济价值阶段”，并采取“两条腿走路”的策略：一是“影响力破圈”（通过自媒体矩阵和直播），二是“良性商业化落地”。他鼓励成员将“热爱的东西带来财富”，并开始思考如何寻找学生来当AI老师。虽然强调“不来虚的，来点犀利的问题”，追求“数据说话”，但他也强调“玩的心态”和“让大家开心”，试图在理想和商业之间找到平衡。木大宝也承诺提供场地支持，并强调“控制好试错成本”，不追求过度专业化，旨在让不同阶梯的人都能找到价值。"
+    },
+    {
+      "question": "社区成员对AI技术和工具的认知和使用情况如何？",
+      "answer": "社区成员对AI技术和工具的认知和使用呈现多样性。有用户积极尝试最新模型（如豆包、Veo3、Flowith Neo），并分享使用体验、提示词技巧和测评结果。也有用户对特定工具（如Manus、Coze）的商业模式、功能限制和获取方式提出疑问。在讨论论文AI撰写率、AI生成视频、AI+会计/法律等话题时，成员们展现出对AI实际应用和局限性的思考。同时，也有用户提到“很多人提示词功底比较糟糕”，以及“大模型不应该做最后一道交付”的观点，这反映出AI应用仍需专业知识和实践经验的辅助。"
+    },
+    {
+      "question": "聊天历史中，AI技术和产品监管以及道德伦理问题被如何提及和讨论？",
+      "answer": "聊天中多次提及AI技术和产品的监管问题。例如，御风现梦提醒要注意AI生成名人自拍合影可能导致账号被封；不辣的皮皮提到内容生成需要备案，清朗行动重拳出击。在“码流”事件中，木大宝强调卖码会丢失信任，并引发了对“自由市场”和“规则”的讨论，以及对“好人以正反馈”的呼吁。关于AI生成内容的真实性，群友们进行了“AI生图真实感大比拼”的讨论，并提到AI无法100%杜绝手指问题，以及难以分辨是拍摄还是AI生成。此外，还提及AI虚拟女友李洛云被微信封杀，以及对“特工”一词带有负面含义的讨论，体现出对AI伦理和命名的思考。"
+    },
+    {
+      "question": "AI+X社区的未来发展可能面临哪些挑战？",
+      "answer": "根据聊天内容，社区可能面临的挑战包括：\n1. **信息不对称与沟通效率**：谢苹果与小舟的深度交流揭示了团队内部因各自狂飙支线导致的信息不对称和期待不匹配问题，需要通过定期碰头会解决。\n2. **社群管理与筛选**：谢苹果提到将动态调整和更新群成员，剔除广告党和长期潜水者，以确保群内信息质量和氛围。\n3. **经济模式的探索**：社区正从情绪价值、知识价值向经济价值转型，但如何实现良性商业化落地仍需探索，例如实习生薪资、IP运营模式等。\n4. **技术挑战**：如AI生成内容的真实性、模型的幻觉问题、特定AI工具的易用性和功能局限性，以及模型备案等监管要求。\n5. **外部环境影响**：VC投资谨慎、经济环境不确定等因素，都会影响AI项目的资金获取和发展。此外，AI领域的快速迭代和竞争也带来挑战，需要社区不断适应和创新。"
+    },
+    {
+      "question": "社区内围绕“不孬”文化产生了哪些有趣的互动和内涵？",
+      "answer": "“不孬”是AI+X社区的一个核心词。谢苹果多次用“不孬”来形容各种AI工具、观点、甚至人品。例如，他称赞张三的财报可视化“不孬”，称赞玉兔的文章“不孬”。在社群争论后，他总结为“孬不孬 鞋穿在脚上自己清楚”，强调实践和自我认知。他还计划举办“最AI不孬创作赛”，鼓励成员围绕“不孬”主题进行AI创作，这使得“不孬”从一个简单的形容词演变为社区独特的文化符号，代表着对卓越、有趣和务实的追求，并将其内化为社区的行动指南和精神内核。"
+    }
+  ],
+  "other_metrics": {
+    "total_messages": 856,
+    "unique_users_count": 48,
+    "active_users": [
+      {
+        "username": "谢苹果",
+        "message_count": 312
+      },
+      {
+        "username": "木大宝",
+        "message_count": 139
+      },
+      {
+        "username": "御风现梦",
+        "message_count": 52
+      },
+      {
+        "username": "Abi阿比#MoWa1024青年创投",
+        "message_count": 49
+      },
+      {
+        "username": "沐沐",
+        "message_count": 47
+      },
+      {
+        "username": "张三",
+        "message_count": 46
+      },
+      {
+        "username": "鱼得水",
+        "message_count": 44
+      },
+      {
+        "username": "Aloha",
+        "message_count": 42
+      },
+      {
+        "username": "般度五子",
+        "message_count": 40
+      },
+      {
+        "username": "               青争玄",
+        "message_count": 39
+      }
+    ],
+    "key_topics": [
+      "AI社区建设与运营",
+      "AI工具与应用测评",
+      "AI内容创作（短视频、表情包、音乐、小说）",
+      "知识库与信息管理",
+      "AI+X跨领域应用（教育、医疗、法律、会计、金融）",
+      "社群活动与线下聚会",
+      "AI伦理与监管",
+      "个人成长与职业发展"
+    ],
+    "sentiment_distribution": {
+      "positive": 75,
+      "neutral": 20,
+      "negative": 5
+    },
+    "link_shared_count": 41,
+    "mention_count": 92,
+    "emoji_count": 94
+  }
+};
+
+        // 初始化页面
+        function initializePage() {
+            renderEventTimeline();
+            renderSentimentChart(); 
+            renderUserActivityChart();
+            renderKeyTopics();
+            renderQuestions();
+        }
+
+    
+
+        // 渲染事件时间线
+        function renderEventTimeline() {
+            const timeline = document.getElementById('eventTimeline');
+            timeline.innerHTML = '';
+            
+            sampleData.event_summary.forEach(event => {
+                const timelineItem = document.createElement('div');
+                debugger
+                timelineItem.className = 'relative pl-8 pb-6 border-l-2 border-gray-200 timeline-item last:border-l-0';
+                timelineItem.innerHTML = `
+                    <div class="text-xs text-gray-400 font-medium mb-1">${new Date(Number(event.timestamp)*1000).toLocaleString()}</div>
+                    <div class="text-gray-700 text-sm leading-relaxed">${event.description}</div>
+                `;
+                timeline.appendChild(timelineItem);
+            });
+        }
+
+        // 渲染情感分析饼图
+        function renderSentimentChart() {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            const sentiment = sampleData.other_metrics.sentiment_distribution;
+            
+            new Chart(ctx, {
+                type: 'pie',
+                data: {
+                    labels: ['积极', '中性', '消极'],
+                    datasets: [{
+                        data: [sentiment.positive, sentiment.neutral, sentiment.negative],
+                        backgroundColor: ['#10b981', '#6b7280', '#ef4444'],
+                        borderWidth: 2,
+                        borderColor: '#ffffff'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom'
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染用户活跃度条形图
+        function renderUserActivityChart() {
+            const ctx = document.getElementById('userActivityChart').getContext('2d');
+            const users = sampleData.other_metrics.active_users;
+            
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: users.map(user => user.username),
+                    datasets: [{
+                        label: '消息数量',
+                        data: users.map(user => user.message_count),
+                        backgroundColor: '#3b82f6',
+                        borderColor: '#1d4ed8',
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    scales: {
+                        y: {
+                            beginAtZero: true
+                        }
+                    }
+                }
+            });
+        }
+
+        // 渲染关键话题
+        function renderKeyTopics() {
+            const topicsContainer = document.getElementById('keyTopics');
+            const topics = sampleData.other_metrics.key_topics;
+            
+            topicsContainer.innerHTML = '';
+            topics.forEach(topic => {
+                const tag = document.createElement('span');
+                tag.className = 'px-3 py-1.5 bg-gray-100 text-gray-700 rounded-full text-xs font-medium hover:bg-gray-200 transition-colors';
+                tag.textContent = topic;
+                topicsContainer.appendChild(tag);
+            });
+            
+            document.getElementById('mentionCount').textContent = sampleData.other_metrics.mention_count.toLocaleString();
+        }
+
+        // 渲染有趣问答
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+            
+            sampleData.interesting_questions.forEach((qa, index) => {
+                const qaDiv = document.createElement('div');
+                qaDiv.className = 'bg-gray-50 rounded-xl p-6 border border-gray-100';
+                qaDiv.innerHTML = `
+                    <div class="flex items-start space-x-3 mb-3">
+                        <div class="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-xs font-semibold text-blue-600">Q</span>
+                        </div>
+                        <div class="font-medium text-gray-800 text-sm leading-relaxed">${qa.question}</div>
+                    </div>
+                    <div class="flex items-start space-x-3">
+                        <div class="w-6 h-6 rounded-full bg-green-100 flex items-center justify-center flex-shrink-0 mt-0.5">
+                            <span class="text-xs font-semibold text-green-600">A</span>
+                        </div>
+                        <div class="text-gray-600 text-sm leading-relaxed">${qa.answer}</div>
+                    </div>
+                `;
+                container.appendChild(qaDiv);
+            });
+        }
+
+        // 页面加载完成后初始化
+        document.addEventListener('DOMContentLoaded', initializePage);
+    </script>
+</body>
+</html>
