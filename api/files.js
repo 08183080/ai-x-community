@@ -7,7 +7,11 @@ function scanDirectory(dirPath, basePath = '') {
     const items = fs.readdirSync(dirPath).sort();
     for (const item of items) {
       const itemPath = path.join(dirPath, item);
-      const relPath = path.join(basePath, item).replace(/\\/g, '/');
+      let relPath = path.join(basePath, item).replace(/\\/g, '/');
+      // 确保路径以 / 开头
+      if (!relPath.startsWith('/')) {
+        relPath = '/' + relPath;
+      }
       
       try {
         const stat = fs.statSync(itemPath);
