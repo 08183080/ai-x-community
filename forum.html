@@ -1,0 +1,550 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI论坛 - AI+X社区</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            background: #000;
+        }
+
+        /* 初始黑暗状态 */
+        .scene {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            transition: background 2s ease;
+        }
+
+        .scene.light {
+            background: linear-gradient(to bottom, #87CEEB 0%, #E0F6FF 50%, #90EE90 100%);
+        }
+
+        /* 门 */
+        .door-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 400px;
+            height: 600px;
+            perspective: 1000px;
+        }
+
+        .door {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 1.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .door.open {
+            transform: rotateY(-90deg);
+        }
+
+        .door-left,
+        .door-right {
+            position: absolute;
+            width: 50%;
+            height: 100%;
+            background: linear-gradient(135deg, #2c1810 0%, #1a0f08 100%);
+            border: 3px solid #8B4513;
+            box-shadow: inset 0 0 30px rgba(0, 0, 0, 0.8);
+        }
+
+        .door-left {
+            left: 0;
+            transform-origin: left center;
+            border-right: 2px solid #654321;
+        }
+
+        .door-right {
+            right: 0;
+            transform-origin: right center;
+            border-left: 2px solid #654321;
+        }
+
+        .door-knob {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: #FFD700;
+            border-radius: 50%;
+            top: 50%;
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.8);
+        }
+
+        .door-left .door-knob {
+            right: 15px;
+        }
+
+        .door-right .door-knob {
+            left: 15px;
+        }
+
+        /* 光线效果 */
+        .light-beam {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                rgba(255, 255, 255, 0.8) 0%,
+                rgba(255, 255, 200, 0.6) 30%,
+                rgba(255, 255, 150, 0.4) 60%,
+                transparent 100%);
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: width 1s ease 0.5s, opacity 1s ease 0.5s;
+            pointer-events: none;
+        }
+
+        .light-beam.active {
+            width: 100%;
+            opacity: 1;
+        }
+
+        /* 苹果树 */
+        .apple-tree {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: opacity 1s ease 2s;
+            pointer-events: none;
+        }
+
+        .apple-tree.visible {
+            opacity: 1;
+        }
+
+        .tree-trunk {
+            width: 80px;
+            height: 300px;
+            background: linear-gradient(to right, #8B4513 0%, #654321 50%, #8B4513 100%);
+            margin: 0 auto;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .tree-crown {
+            width: 400px;
+            height: 350px;
+            background: radial-gradient(ellipse at center, #228B22 0%, #006400 100%);
+            border-radius: 50%;
+            position: absolute;
+            bottom: 250px;
+            left: 50%;
+            transform: translateX(-50%);
+            box-shadow: 0 0 50px rgba(34, 139, 34, 0.5);
+        }
+
+        .apple {
+            position: absolute;
+            width: 30px;
+            height: 30px;
+            background: radial-gradient(circle at 30% 30%, #FF6347 0%, #DC143C 100%);
+            border-radius: 50% 50% 50% 50% / 60% 60% 40% 40%;
+            box-shadow: inset -5px -5px 10px rgba(0, 0, 0, 0.3);
+            animation: sway 3s ease-in-out infinite;
+        }
+
+        .apple::before {
+            content: '';
+            position: absolute;
+            top: -5px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 5px;
+            height: 10px;
+            background: #228B22;
+            border-radius: 50%;
+        }
+
+        .apple:nth-child(1) { top: 50px; left: 100px; animation-delay: 0s; }
+        .apple:nth-child(2) { top: 80px; left: 200px; animation-delay: 0.5s; }
+        .apple:nth-child(3) { top: 120px; left: 150px; animation-delay: 1s; }
+        .apple:nth-child(4) { top: 90px; left: 300px; animation-delay: 1.5s; }
+        .apple:nth-child(5) { top: 60px; left: 250px; animation-delay: 2s; }
+
+        @keyframes sway {
+            0%, 100% { transform: rotate(-2deg); }
+            50% { transform: rotate(2deg); }
+        }
+
+        /* 论坛内容 */
+        .forum-content {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            transition: opacity 1s ease 3s;
+            z-index: 10;
+            overflow-y: auto;
+            padding: 40px 20px;
+        }
+
+        .forum-content.visible {
+            opacity: 1;
+        }
+
+        .forum-header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #2c3e50;
+        }
+
+        .forum-title {
+            font-size: 3em;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .forum-subtitle {
+            font-size: 1.2em;
+            color: #555;
+            letter-spacing: 0.1em;
+        }
+
+        .forum-form {
+            max-width: 800px;
+            margin: 0 auto 40px;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+
+        .forum-input,
+        .forum-textarea {
+            width: 100%;
+            padding: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        .forum-input:focus,
+        .forum-textarea:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+
+        .forum-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .forum-tags {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .forum-tag {
+            padding: 8px 20px;
+            background: #f0f0f0;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .forum-tag:hover,
+        .forum-tag.active {
+            background: #00ff88;
+            border-color: #00ff88;
+            color: #000;
+        }
+
+        .forum-submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #00ff88, #00d4ff);
+            border: none;
+            border-radius: 8px;
+            color: #000;
+            font-family: 'Courier New', monospace;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .forum-submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 255, 136, 0.4);
+        }
+
+        .forum-posts {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .forum-post {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 12px;
+            padding: 25px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            animation: fadeInUp 0.5s ease;
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .forum-post-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 15px;
+        }
+
+        .forum-post-author {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 1.1em;
+        }
+
+        .forum-post-tag {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #00ff88;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+        }
+
+        .forum-post-time {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        .forum-post-content {
+            color: #555;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .forum-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+            font-size: 1.1em;
+        }
+
+        @media (max-width: 768px) {
+            .door-container {
+                width: 300px;
+                height: 450px;
+            }
+
+            .tree-crown {
+                width: 300px;
+                height: 260px;
+            }
+
+            .forum-title {
+                font-size: 2em;
+            }
+
+            .forum-form {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="scene" id="scene">
+        <div class="door-container">
+            <div class="door" id="door">
+                <div class="door-left">
+                    <div class="door-knob"></div>
+                </div>
+                <div class="door-right">
+                    <div class="door-knob"></div>
+                </div>
+            </div>
+        </div>
+        <div class="light-beam" id="lightBeam"></div>
+        <div class="apple-tree" id="appleTree">
+            <div class="tree-crown">
+                <div class="apple"></div>
+                <div class="apple"></div>
+                <div class="apple"></div>
+                <div class="apple"></div>
+                <div class="apple"></div>
+            </div>
+            <div class="tree-trunk"></div>
+        </div>
+        <div class="forum-content" id="forumContent">
+            <div class="forum-header">
+                <h1 class="forum-title">AI论坛</h1>
+                <p class="forum-subtitle">交流各种AI话题，分享你的想法</p>
+            </div>
+            <div class="forum-form">
+                <input type="text" id="forumNickname" placeholder="你的昵称" class="forum-input">
+                <textarea id="forumTextarea" placeholder="分享你的AI想法..." class="forum-textarea"></textarea>
+                <div class="forum-tags">
+                    <button class="forum-tag" data-tag="ChatGPT">ChatGPT</button>
+                    <button class="forum-tag" data-tag="Claude">Claude</button>
+                    <button class="forum-tag" data-tag="Midjourney">Midjourney</button>
+                    <button class="forum-tag" data-tag="Sora">Sora</button>
+                    <button class="forum-tag" data-tag="其他">其他</button>
+                </div>
+                <button id="forumSubmit" class="forum-submit-btn">发布留言</button>
+            </div>
+            <div class="forum-posts" id="forumPosts">
+                <div class="forum-empty">还没有留言，快来分享你的想法吧！</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 动画序列
+        setTimeout(() => {
+            document.getElementById('door').classList.add('open');
+        }, 500);
+
+        setTimeout(() => {
+            document.getElementById('scene').classList.add('light');
+            document.getElementById('lightBeam').classList.add('active');
+        }, 1500);
+
+        setTimeout(() => {
+            document.getElementById('appleTree').classList.add('visible');
+        }, 2500);
+
+        setTimeout(() => {
+            document.getElementById('forumContent').classList.add('visible');
+        }, 3500);
+
+        // 论坛功能
+        (function() {
+            'use strict';
+            
+            const forumSubmit = document.getElementById('forumSubmit');
+            const forumNickname = document.getElementById('forumNickname');
+            const forumTextarea = document.getElementById('forumTextarea');
+            const forumTags = document.querySelectorAll('.forum-tag');
+            const forumPosts = document.getElementById('forumPosts');
+            
+            let selectedTag = '';
+            const STORAGE_KEY = 'ai_forum_posts';
+            
+            forumTags.forEach(tag => {
+                tag.addEventListener('click', function() {
+                    forumTags.forEach(t => t.classList.remove('active'));
+                    this.classList.add('active');
+                    selectedTag = this.dataset.tag;
+                });
+            });
+            
+            function loadPosts() {
+                const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                if (posts.length === 0) {
+                    forumPosts.innerHTML = '<div class="forum-empty">还没有留言，快来分享你的想法吧！</div>';
+                    return;
+                }
+                forumPosts.innerHTML = posts.sort((a, b) => new Date(b.time) - new Date(a.time))
+                    .map(post => `
+                        <div class="forum-post">
+                            <div class="forum-post-header">
+                                <div>
+                                    <span class="forum-post-author">${escapeHtml(post.nickname || '匿名')}</span>
+                                    <span class="forum-post-tag">${escapeHtml(post.tag || '其他')}</span>
+                                </div>
+                                <span class="forum-post-time">${formatTime(post.time)}</span>
+                            </div>
+                            <div class="forum-post-content">${escapeHtml(post.content)}</div>
+                        </div>
+                    `).join('');
+            }
+            
+            function savePost(nickname, content, tag) {
+                const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                posts.push({
+                    nickname,
+                    content,
+                    tag: tag || '其他',
+                    time: new Date().toISOString()
+                });
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+                loadPosts();
+            }
+            
+            forumSubmit.addEventListener('click', function() {
+                const nickname = forumNickname.value.trim();
+                const content = forumTextarea.value.trim();
+                
+                if (!nickname || !content) {
+                    alert('请填写昵称和内容');
+                    return;
+                }
+                
+                savePost(nickname, content, selectedTag);
+                forumNickname.value = '';
+                forumTextarea.value = '';
+                forumTags.forEach(t => t.classList.remove('active'));
+                selectedTag = '';
+            });
+            
+            function escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+            
+            function formatTime(isoString) {
+                const date = new Date(isoString);
+                const now = new Date();
+                const diff = now - date;
+                const minutes = Math.floor(diff / 60000);
+                const hours = Math.floor(diff / 3600000);
+                const days = Math.floor(diff / 86400000);
+                
+                if (minutes < 1) return '刚刚';
+                if (minutes < 60) return `${minutes}分钟前`;
+                if (hours < 24) return `${hours}小时前`;
+                if (days < 7) return `${days}天前`;
+                return date.toLocaleDateString('zh-CN');
+            }
+            
+            loadPosts();
+        })();
+    </script>
+</body>
+</html>
