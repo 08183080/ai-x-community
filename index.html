@@ -914,11 +914,11 @@
             function openZhaoyangModal() {
                 zhaoyangModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                // 延迟2秒后跳转
-                redirectTimeout = setTimeout(function() {
-                    window.open(zhaoyangUrl, '_blank');
+                // 立即跳转
+                window.open(zhaoyangUrl, '_blank');
+                setTimeout(function() {
                     closeZhaoyangModal();
-                }, 2000);
+                }, 100);
             }
             
             function closeZhaoyangModal(event) {
@@ -967,11 +967,11 @@
             function openInfoStreamModal() {
                 infoStreamModal.classList.add('active');
                 document.body.style.overflow = 'hidden';
-                // 延迟2秒后跳转
-                redirectTimeout = setTimeout(function() {
-                    window.open(infoStreamUrl, '_blank');
+                // 立即跳转
+                window.open(infoStreamUrl, '_blank');
+                setTimeout(function() {
                     closeInfoStreamModal();
-                }, 2000);
+                }, 100);
             }
             
             function closeInfoStreamModal(event) {
