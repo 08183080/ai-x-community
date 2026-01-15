@@ -626,6 +626,7 @@
                 <a href="https://my.feishu.cn/wiki/XpuewZYP8iLSFHkbm7jcPfexn4d?from=from_copylink" class="cta-button" target="_blank"><span>AI资源/信息/留言箱</span></a>
                 <a href="#" class="cta-button" id="zhaoyangButton"><span>我是昭阳</span></a>
                 <a href="#" class="cta-button" id="infoStreamButton"><span>AI信息流</span></a>
+                <a href="#" class="cta-button" id="aiBlindBoxButton"><span>AI盲盒</span></a>
             </div>
         </header>
 
@@ -689,6 +690,16 @@
             <span class="modal-close" onclick="closeInfoStreamModal()">&times;</span>
             <div style="text-align: center;">
                 <p style="color: var(--text-primary); font-size: 1.3em; line-height: 1.8; letter-spacing: 0.1em;">人生第一个产品</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Blind Box Modal -->
+    <div class="modal-overlay" id="aiBlindBoxModal">
+        <div class="modal-content">
+            <span class="modal-close" onclick="closeAIBlindBoxModal()">&times;</span>
+            <div style="text-align: center;">
+                <p style="color: var(--text-primary); font-size: 1.3em; line-height: 1.8; letter-spacing: 0.1em;">孙小鱼的产品。公众号：孙SamSun。</p>
             </div>
         </div>
     </div>
@@ -1004,6 +1015,48 @@
             });
             
             window.closeInfoStreamModal = closeInfoStreamModal;
+        })();
+
+        // AI Blind Box Modal Module
+        (function() {
+            'use strict';
+            
+            const aiBlindBoxModal = document.getElementById('aiBlindBoxModal');
+            const aiBlindBoxButton = document.getElementById('aiBlindBoxButton');
+            
+            if (!aiBlindBoxModal || !aiBlindBoxButton) return;
+            
+            function openAIBlindBoxModal() {
+                aiBlindBoxModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
+            
+            function closeAIBlindBoxModal(event) {
+                if (event && event.target) {
+                    if (event.target.id === 'aiBlindBoxModal' || event.target.classList.contains('modal-close')) {
+                        aiBlindBoxModal.classList.remove('active');
+                        document.body.style.overflow = 'auto';
+                    }
+                } else {
+                    aiBlindBoxModal.classList.remove('active');
+                    document.body.style.overflow = 'auto';
+                }
+            }
+            
+            aiBlindBoxButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                openAIBlindBoxModal();
+            });
+            
+            aiBlindBoxModal.addEventListener('click', closeAIBlindBoxModal);
+            
+            document.addEventListener('keydown', function(event) {
+                if (event.key === 'Escape' && aiBlindBoxModal.classList.contains('active')) {
+                    closeAIBlindBoxModal({target: {id: 'aiBlindBoxModal'}});
+                }
+            });
+            
+            window.closeAIBlindBoxModal = closeAIBlindBoxModal;
         })();
 
         // Scroll Animation Module
