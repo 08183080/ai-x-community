@@ -579,6 +579,55 @@
             border-top: 1px solid var(--glass-border);
         }
 
+        /* Language Switcher */
+        .lang-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            opacity: 0.7;
+            transition: var(--transition-smooth);
+        }
+
+        .lang-switcher:hover {
+            opacity: 1;
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 8px 32px var(--shadow-glow);
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: var(--transition-fast);
+            letter-spacing: 0.05em;
+        }
+
+        .lang-btn:hover {
+            color: var(--text-primary);
+            background: rgba(0, 255, 136, 0.1);
+        }
+
+        .lang-btn.active {
+            color: var(--text-primary);
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 10px var(--shadow-glow);
+        }
+
         /* Footer */
         .footer {
             text-align: center;
@@ -668,6 +717,17 @@
                 padding: 10px 20px;
                 font-size: 0.85em;
             }
+
+            .lang-switcher {
+                top: 15px;
+                right: 15px;
+                padding: 6px;
+            }
+
+            .lang-btn {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
         }
     </style>
 </head>
@@ -676,10 +736,16 @@
         <canvas id="matrix"></canvas>
     </div>
 
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" id="langZh" data-lang="zh">中文</button>
+        <button class="lang-btn" id="langEn" data-lang="en">English</button>
+    </div>
+
     <main class="content">
         <header>
-            <h1>AI+X社区历史数据</h1>
-            <a href="index.html" class="back-link">← 返回主页</a>
+            <h1 data-i18n="title">AI+X社区历史数据</h1>
+            <a href="index.html" class="back-link" data-i18n="backHome">← 返回主页</a>
         </header>
 
         <section class="gallery-section" id="gallerySection">
@@ -687,12 +753,12 @@
         </section>
 
         <section class="folder-section" id="folderSection" style="display: none;">
-            <h2 style="font-size: 2em; margin-bottom: 30px; text-align: center; opacity: 0.9;">文件夹</h2>
+            <h2 style="font-size: 2em; margin-bottom: 30px; text-align: center; opacity: 0.9;" data-i18n="folders">文件夹</h2>
             <div id="folderList"></div>
         </section>
 
         <section class="doc-section" id="docSection" style="display: none;">
-            <h2 style="font-size: 2em; margin-bottom: 30px; text-align: center; opacity: 0.9;">文档</h2>
+            <h2 style="font-size: 2em; margin-bottom: 30px; text-align: center; opacity: 0.9;" data-i18n="documents">文档</h2>
             <div class="doc-grid" id="docGrid"></div>
         </section>
 
@@ -910,8 +976,10 @@
                 const files = await window.scanHistoryData();
                 const images = collectImages(files);
                 
+                const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                const noImagesText = lang === 'zh' ? '暂无图片' : 'No images';
                 if (images.length === 0) {
-                    galleryGrid.innerHTML = '<p style="text-align:center;opacity:0.6;grid-column:1/-1;">暂无图片</p>';
+                    galleryGrid.innerHTML = `<p style="text-align:center;opacity:0.6;grid-column:1/-1;">${noImagesText}</p>`;
                     return;
                 }
 
@@ -965,10 +1033,14 @@
                 const card = document.createElement('div');
                 card.className = 'doc-card';
                 const isPdf = isPdfFile(docFile);
+                const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                const docTypeText = lang === 'zh' 
+                    ? (isPdf ? 'PDF 文档' : 'HTML 文档')
+                    : (isPdf ? 'PDF Document' : 'HTML Document');
                 card.innerHTML = `
                     <div class="doc-icon">${isPdf ? '📕' : '📄'}</div>
                     <div class="doc-name">${docFile.name}</div>
-                    <div class="doc-type">${isPdf ? 'PDF 文档' : 'HTML 文档'}</div>
+                    <div class="doc-type">${docTypeText}</div>
                 `;
                 card.addEventListener('click', () => {
                     if (isPdf) {
@@ -1136,10 +1208,14 @@
                             const card = document.createElement('div');
                             card.className = 'doc-card';
                             const isPdf = isPdfFile(doc);
+                            const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                            const docTypeText = lang === 'zh' 
+                                ? (isPdf ? 'PDF 文档' : 'HTML 文档')
+                                : (isPdf ? 'PDF Document' : 'HTML Document');
                             card.innerHTML = `
                                 <div class="doc-icon">${isPdf ? '📕' : '📄'}</div>
                                 <div class="doc-name">${doc.name}</div>
-                                <div class="doc-type">${isPdf ? 'PDF 文档' : 'HTML 文档'}</div>
+                                <div class="doc-type">${docTypeText}</div>
                             `;
                             card.addEventListener('click', () => {
                                 if (isPdf) {
@@ -1190,6 +1266,118 @@
             }
 
             initFolderDisplay();
+        })();
+
+        // Language Switcher Module
+        (function() {
+            'use strict';
+
+            const translations = {
+                zh: {
+                    title: 'AI+X社区历史数据',
+                    backHome: '← 返回主页',
+                    folders: '文件夹',
+                    documents: '文档'
+                },
+                en: {
+                    title: 'AI+X Community History Data',
+                    backHome: '← Back to Home',
+                    folders: 'Folders',
+                    documents: 'Documents'
+                }
+            };
+
+            function initLanguage() {
+                const savedLang = localStorage.getItem('preferredLanguage');
+                if (savedLang && (savedLang === 'zh' || savedLang === 'en')) {
+                    return savedLang;
+                }
+                const browserLang = navigator.language || navigator.userLanguage;
+                return browserLang.startsWith('zh') ? 'zh' : 'en';
+            }
+
+            function updateLanguage(lang) {
+                const texts = translations[lang];
+                const elements = document.querySelectorAll('[data-i18n]');
+                
+                elements.forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (texts[key]) {
+                        el.textContent = texts[key];
+                    }
+                });
+
+                document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+                document.title = lang === 'zh' ? 'AI+X社区历史数据' : 'AI+X Community History Data';
+
+                const langZh = document.getElementById('langZh');
+                const langEn = document.getElementById('langEn');
+                if (langZh && langEn) {
+                    if (lang === 'zh') {
+                        langZh.classList.add('active');
+                        langEn.classList.remove('active');
+                    } else {
+                        langEn.classList.add('active');
+                        langZh.classList.remove('active');
+                    }
+                }
+
+                localStorage.setItem('preferredLanguage', lang);
+
+                // Reload gallery and docs to update text
+                if (window.scanHistoryData) {
+                    setTimeout(() => {
+                        const galleryGrid = document.getElementById('galleryGrid');
+                        if (galleryGrid) {
+                            const images = Array.from(galleryGrid.querySelectorAll('.image-card')).map(card => ({
+                                name: card.querySelector('.image-name').textContent,
+                                path: card.querySelector('img').dataset.src || card.querySelector('img').src
+                            }));
+                            if (images.length === 0) {
+                                const noImagesText = lang === 'zh' ? '暂无图片' : 'No images';
+                                galleryGrid.innerHTML = `<p style="text-align:center;opacity:0.6;grid-column:1/-1;">${noImagesText}</p>`;
+                            }
+                        }
+
+                        // Update doc cards
+                        const docGrid = document.getElementById('docGrid');
+                        if (docGrid) {
+                            const docCards = docGrid.querySelectorAll('.doc-card');
+                            docCards.forEach(card => {
+                                const docTypeEl = card.querySelector('.doc-type');
+                                if (docTypeEl) {
+                                    const isPdf = docTypeEl.textContent.includes('PDF');
+                                    docTypeEl.textContent = lang === 'zh' 
+                                        ? (isPdf ? 'PDF 文档' : 'HTML 文档')
+                                        : (isPdf ? 'PDF Document' : 'HTML Document');
+                                }
+                            });
+                        }
+                    }, 100);
+                }
+            }
+
+            let currentLang = initLanguage();
+            updateLanguage(currentLang);
+
+            const langZh = document.getElementById('langZh');
+            const langEn = document.getElementById('langEn');
+
+            if (langZh) {
+                langZh.addEventListener('click', () => {
+                    currentLang = 'zh';
+                    updateLanguage(currentLang);
+                });
+            }
+
+            if (langEn) {
+                langEn.addEventListener('click', () => {
+                    currentLang = 'en';
+                    updateLanguage(currentLang);
+                });
+            }
+
+            window.currentLanguage = () => currentLang;
         })();
     </script>
 </body>

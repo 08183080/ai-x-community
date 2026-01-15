@@ -366,6 +366,55 @@
             font-size: 1.1em;
         }
 
+        /* Language Switcher */
+        .lang-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            display: flex;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 12px;
+            padding: 8px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            opacity: 0.7;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .lang-switcher:hover {
+            opacity: 1;
+            border-color: rgba(0, 255, 136, 0.4);
+            box-shadow: 0 8px 32px rgba(0, 255, 136, 0.3);
+        }
+
+        .lang-btn {
+            padding: 8px 16px;
+            background: transparent;
+            border: none;
+            color: rgba(255, 255, 255, 0.7);
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            letter-spacing: 0.05em;
+        }
+
+        .lang-btn:hover {
+            color: #fff;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .lang-btn.active {
+            color: #00ff88;
+            background: rgba(0, 255, 136, 0.2);
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
         @media (max-width: 768px) {
             .door-container {
                 width: 300px;
@@ -384,10 +433,27 @@
             .forum-form {
                 padding: 20px;
             }
+
+            .lang-switcher {
+                top: 15px;
+                right: 15px;
+                padding: 6px;
+            }
+
+            .lang-btn {
+                padding: 6px 12px;
+                font-size: 0.85em;
+            }
         }
     </style>
 </head>
 <body>
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" id="langZh" data-lang="zh">中文</button>
+        <button class="lang-btn" id="langEn" data-lang="en">English</button>
+    </div>
+
     <div class="scene" id="scene">
         <div class="door-container">
             <div class="door" id="door">
@@ -412,23 +478,23 @@
         </div>
         <div class="forum-content" id="forumContent">
             <div class="forum-header">
-                <h1 class="forum-title">AI论坛</h1>
-                <p class="forum-subtitle">交流各种AI话题，分享你的想法</p>
+                <h1 class="forum-title" data-i18n="title">AI论坛</h1>
+                <p class="forum-subtitle" data-i18n="subtitle">交流各种AI话题，分享你的想法</p>
             </div>
             <div class="forum-form">
-                <input type="text" id="forumNickname" placeholder="你的昵称" class="forum-input">
-                <textarea id="forumTextarea" placeholder="分享你的AI想法..." class="forum-textarea"></textarea>
+                <input type="text" id="forumNickname" data-i18n-placeholder="nicknamePlaceholder" placeholder="你的昵称" class="forum-input">
+                <textarea id="forumTextarea" data-i18n-placeholder="textareaPlaceholder" placeholder="分享你的AI想法..." class="forum-textarea"></textarea>
                 <div class="forum-tags">
                     <button class="forum-tag" data-tag="ChatGPT">ChatGPT</button>
                     <button class="forum-tag" data-tag="Claude">Claude</button>
                     <button class="forum-tag" data-tag="Midjourney">Midjourney</button>
                     <button class="forum-tag" data-tag="Sora">Sora</button>
-                    <button class="forum-tag" data-tag="其他">其他</button>
+                    <button class="forum-tag" data-tag="其他" data-i18n="otherTag">其他</button>
                 </div>
-                <button id="forumSubmit" class="forum-submit-btn">发布留言</button>
+                <button id="forumSubmit" class="forum-submit-btn" data-i18n="submitBtn">发布留言</button>
             </div>
             <div class="forum-posts" id="forumPosts">
-                <div class="forum-empty">还没有留言，快来分享你的想法吧！</div>
+                <div class="forum-empty" data-i18n="emptyMessage">还没有留言，快来分享你的想法吧！</div>
             </div>
         </div>
     </div>
@@ -475,8 +541,10 @@
             
             function loadPosts() {
                 const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                const emptyMsg = lang === 'zh' ? '还没有留言，快来分享你的想法吧！' : 'No messages yet. Come share your thoughts!';
                 if (posts.length === 0) {
-                    forumPosts.innerHTML = '<div class="forum-empty">还没有留言，快来分享你的想法吧！</div>';
+                    forumPosts.innerHTML = `<div class="forum-empty" data-i18n="emptyMessage">${emptyMsg}</div>`;
                     return;
                 }
                 forumPosts.innerHTML = posts.sort((a, b) => new Date(b.time) - new Date(a.time))
@@ -511,7 +579,9 @@
                 const content = forumTextarea.value.trim();
                 
                 if (!nickname || !content) {
-                    alert('请填写昵称和内容');
+                    const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                    const errorMsg = lang === 'zh' ? '请填写昵称和内容' : 'Please fill in nickname and content';
+                    alert(errorMsg);
                     return;
                 }
                 
@@ -536,14 +606,193 @@
                 const hours = Math.floor(diff / 3600000);
                 const days = Math.floor(diff / 86400000);
                 
-                if (minutes < 1) return '刚刚';
-                if (minutes < 60) return `${minutes}分钟前`;
-                if (hours < 24) return `${hours}小时前`;
-                if (days < 7) return `${days}天前`;
-                return date.toLocaleDateString('zh-CN');
+                const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                const timeTexts = lang === 'zh' 
+                    ? { justNow: '刚刚', minutesAgo: '分钟前', hoursAgo: '小时前', daysAgo: '天前' }
+                    : { justNow: 'just now', minutesAgo: 'minutes ago', hoursAgo: 'hours ago', daysAgo: 'days ago' };
+                
+                if (minutes < 1) return timeTexts.justNow;
+                if (minutes < 60) return `${minutes} ${timeTexts.minutesAgo}`;
+                if (hours < 24) return `${hours} ${timeTexts.hoursAgo}`;
+                if (days < 7) return `${days} ${timeTexts.daysAgo}`;
+                return date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US');
             }
             
             loadPosts();
+        })();
+
+        // Language Switcher Module
+        (function() {
+            'use strict';
+
+            const translations = {
+                zh: {
+                    title: 'AI论坛',
+                    subtitle: '交流各种AI话题，分享你的想法',
+                    nicknamePlaceholder: '你的昵称',
+                    textareaPlaceholder: '分享你的AI想法...',
+                    otherTag: '其他',
+                    submitBtn: '发布留言',
+                    emptyMessage: '还没有留言，快来分享你的想法吧！',
+                    errorMessage: '请填写昵称和内容'
+                },
+                en: {
+                    title: 'AI Forum',
+                    subtitle: 'Discuss various AI topics and share your thoughts',
+                    nicknamePlaceholder: 'Your nickname',
+                    textareaPlaceholder: 'Share your AI thoughts...',
+                    otherTag: 'Other',
+                    submitBtn: 'Post Message',
+                    emptyMessage: 'No messages yet. Come share your thoughts!',
+                    errorMessage: 'Please fill in nickname and content'
+                }
+            };
+
+            function initLanguage() {
+                const savedLang = localStorage.getItem('preferredLanguage');
+                if (savedLang && (savedLang === 'zh' || savedLang === 'en')) {
+                    return savedLang;
+                }
+                const browserLang = navigator.language || navigator.userLanguage;
+                return browserLang.startsWith('zh') ? 'zh' : 'en';
+            }
+
+            function updateLanguage(lang) {
+                const texts = translations[lang];
+                const elements = document.querySelectorAll('[data-i18n]');
+                
+                elements.forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (texts[key]) {
+                        el.textContent = texts[key];
+                    }
+                });
+
+                const placeholderElements = document.querySelectorAll('[data-i18n-placeholder]');
+                placeholderElements.forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    if (texts[key]) {
+                        el.placeholder = texts[key];
+                    }
+                });
+
+                document.documentElement.lang = lang === 'zh' ? 'zh-CN' : 'en';
+                document.title = lang === 'zh' ? 'AI论坛 - AI+X社区' : 'AI Forum - AI+X Community';
+
+                const langZh = document.getElementById('langZh');
+                const langEn = document.getElementById('langEn');
+                if (langZh && langEn) {
+                    if (lang === 'zh') {
+                        langZh.classList.add('active');
+                        langEn.classList.remove('active');
+                    } else {
+                        langEn.classList.add('active');
+                        langZh.classList.remove('active');
+                    }
+                }
+
+                localStorage.setItem('preferredLanguage', lang);
+
+                // Reload posts to update time format
+                if (window.loadPosts) {
+                    const forumPosts = document.getElementById('forumPosts');
+                    if (forumPosts) {
+                        const STORAGE_KEY = 'ai_forum_posts';
+                        const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+                        if (posts.length === 0) {
+                            forumPosts.innerHTML = `<div class="forum-empty" data-i18n="emptyMessage">${texts.emptyMessage}</div>`;
+                        } else {
+                            const escapeHtml = (text) => {
+                                const div = document.createElement('div');
+                                div.textContent = text;
+                                return div.innerHTML;
+                            };
+                            forumPosts.innerHTML = posts.sort((a, b) => new Date(b.time) - new Date(a.time))
+                                .map(post => {
+                                    const timeTexts = lang === 'zh' 
+                                        ? { justNow: '刚刚', minutesAgo: '分钟前', hoursAgo: '小时前', daysAgo: '天前' }
+                                        : { justNow: 'just now', minutesAgo: 'minutes ago', hoursAgo: 'hours ago', daysAgo: 'days ago' };
+                                    const date = new Date(post.time);
+                                    const now = new Date();
+                                    const diff = now - date;
+                                    const minutes = Math.floor(diff / 60000);
+                                    const hours = Math.floor(diff / 3600000);
+                                    const days = Math.floor(diff / 86400000);
+                                    let timeStr;
+                                    if (minutes < 1) timeStr = timeTexts.justNow;
+                                    else if (minutes < 60) timeStr = `${minutes} ${timeTexts.minutesAgo}`;
+                                    else if (hours < 24) timeStr = `${hours} ${timeTexts.hoursAgo}`;
+                                    else if (days < 7) timeStr = `${days} ${timeTexts.daysAgo}`;
+                                    else timeStr = date.toLocaleDateString(lang === 'zh' ? 'zh-CN' : 'en-US');
+                                    return `
+                                        <div class="forum-post">
+                                            <div class="forum-post-header">
+                                                <div>
+                                                    <span class="forum-post-author">${escapeHtml(post.nickname || '匿名')}</span>
+                                                    <span class="forum-post-tag">${escapeHtml(post.tag || '其他')}</span>
+                                                </div>
+                                                <span class="forum-post-time">${timeStr}</span>
+                                            </div>
+                                            <div class="forum-post-content">${escapeHtml(post.content)}</div>
+                                        </div>
+                                    `;
+                                }).join('');
+                        }
+                    }
+                }
+
+                // Update error message in submit handler
+                const submitBtn = document.getElementById('forumSubmit');
+                if (submitBtn) {
+                    const originalHandler = submitBtn.onclick;
+                    submitBtn.onclick = function() {
+                        const nickname = document.getElementById('forumNickname').value.trim();
+                        const content = document.getElementById('forumTextarea').value.trim();
+                        if (!nickname || !content) {
+                            alert(texts.errorMessage);
+                            return;
+                        }
+                        if (originalHandler) originalHandler();
+                    };
+                }
+            }
+
+            let currentLang = initLanguage();
+            updateLanguage(currentLang);
+
+            const langZh = document.getElementById('langZh');
+            const langEn = document.getElementById('langEn');
+
+            if (langZh) {
+                langZh.addEventListener('click', () => {
+                    currentLang = 'zh';
+                    updateLanguage(currentLang);
+                });
+            }
+
+            if (langEn) {
+                langEn.addEventListener('click', () => {
+                    currentLang = 'en';
+                    updateLanguage(currentLang);
+                });
+            }
+
+            window.currentLanguage = () => currentLang;
+
+            // Override submit handler to use translated error message
+            const forumSubmit = document.getElementById('forumSubmit');
+            const forumNickname = document.getElementById('forumNickname');
+            const forumTextarea = document.getElementById('forumTextarea');
+            if (forumSubmit && forumNickname && forumTextarea) {
+                forumSubmit.addEventListener('click', function() {
+                    const nickname = forumNickname.value.trim();
+                    const content = forumTextarea.value.trim();
+                    if (!nickname || !content) {
+                        alert(translations[currentLang].errorMessage);
+                        return;
+                    }
+                });
+            }
         })();
     </script>
 </body>
