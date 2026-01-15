@@ -1,0 +1,8 @@
+{
+  "name": "ai-x-community",
+  "version": "1.0.0",
+  "description": "AI+X Community Forum",
+  "dependencies": {
+    "@vercel/kv": "^0.2.1"
+  }
+}

@@ -366,6 +366,98 @@
             font-size: 1.1em;
         }
 
+        .forum-controls {
+            max-width: 800px;
+            margin: 0 auto 30px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .forum-sort-btns {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .forum-sort-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #555;
+        }
+
+        .forum-sort-btn:hover,
+        .forum-sort-btn.active {
+            background: #00ff88;
+            border-color: #00ff88;
+            color: #000;
+        }
+
+        .forum-search {
+            flex: 1;
+            min-width: 200px;
+            padding: 8px 15px;
+            border: 2px solid #ddd;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            transition: border-color 0.3s;
+        }
+
+        .forum-search:focus {
+            outline: none;
+            border-color: #00ff88;
+        }
+
+        .forum-post-featured {
+            display: inline-block;
+            padding: 4px 12px;
+            background: #FFD700;
+            color: #000;
+            border-radius: 12px;
+            font-size: 0.8em;
+            margin-left: 10px;
+            font-weight: bold;
+        }
+
+        .forum-post-actions {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .forum-vote-btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 6px 12px;
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+            color: #00ff88;
+        }
+
+        .forum-vote-btn:hover {
+            background: rgba(0, 255, 136, 0.2);
+            transform: scale(1.05);
+        }
+
+        .forum-vote-count {
+            font-weight: bold;
+        }
+
         /* Language Switcher */
         .lang-switcher {
             position: fixed;
@@ -481,6 +573,14 @@
                 <h1 class="forum-title" data-i18n="title">AI论坛</h1>
                 <p class="forum-subtitle" data-i18n="subtitle">交流各种AI话题，分享你的想法</p>
             </div>
+            <div class="forum-controls">
+                <div class="forum-sort-btns">
+                    <button class="forum-sort-btn active" data-sort="new" data-i18n="sortNew">最新</button>
+                    <button class="forum-sort-btn" data-sort="hot" data-i18n="sortHot">最热</button>
+                    <button class="forum-sort-btn" data-sort="featured" data-i18n="sortFeatured">精华</button>
+                </div>
+                <input type="text" class="forum-search" id="forumSearch" data-i18n-placeholder="searchPlaceholder" placeholder="搜索帖子...">
+            </div>
             <div class="forum-form">
                 <input type="text" id="forumNickname" data-i18n-placeholder="nicknamePlaceholder" placeholder="你的昵称" class="forum-input">
                 <textarea id="forumTextarea" data-i18n-placeholder="textareaPlaceholder" placeholder="分享你的AI想法..." class="forum-textarea"></textarea>
@@ -527,9 +627,13 @@
             const forumTextarea = document.getElementById('forumTextarea');
             const forumTags = document.querySelectorAll('.forum-tag');
             const forumPosts = document.getElementById('forumPosts');
+            const forumSearch = document.getElementById('forumSearch');
+            const sortBtns = document.querySelectorAll('.forum-sort-btn');
             
             let selectedTag = '';
-            const STORAGE_KEY = 'ai_forum_posts';
+            let currentSort = 'new';
+            let allPosts = [];
+            let featuredIds = new Set();
             
             forumTags.forEach(tag => {
                 tag.addEventListener('click', function() {
@@ -539,42 +643,135 @@
                 });
             });
             
-            function loadPosts() {
-                const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+            sortBtns.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    sortBtns.forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentSort = this.dataset.sort;
+                    loadPosts();
+                });
+            });
+            
+            if (forumSearch) {
+                let searchTimeout;
+                forumSearch.addEventListener('input', function() {
+                    clearTimeout(searchTimeout);
+                    searchTimeout = setTimeout(() => {
+                        filterAndRenderPosts();
+                    }, 300);
+                });
+            }
+            
+            async function loadPosts() {
+                try {
+                    const res = await fetch(`/api/forum-posts?sort=${currentSort}&limit=50`);
+                    if (!res.ok) throw new Error('Failed to load posts');
+                    allPosts = await res.json();
+                    if (currentSort === 'featured') {
+                        featuredIds = new Set(allPosts.map(p => p.id));
+                    } else {
+                        const featuredRes = await fetch('/api/forum-posts?sort=featured&limit=100');
+                        if (featuredRes.ok) {
+                            const featured = await featuredRes.json();
+                            featuredIds = new Set(featured.map(p => p.id));
+                        }
+                    }
+                    filterAndRenderPosts();
+                } catch (error) {
+                    console.error('Load posts error:', error);
+                    const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                    const errorMsg = lang === 'zh' ? '加载失败，请稍后重试' : 'Failed to load, please try again';
+                    forumPosts.innerHTML = `<div class="forum-empty">${errorMsg}</div>`;
+                }
+            }
+            
+            function filterAndRenderPosts() {
+                const searchTerm = forumSearch ? forumSearch.value.trim().toLowerCase() : '';
+                let filtered = allPosts;
+                
+                if (searchTerm) {
+                    filtered = allPosts.filter(post => 
+                        post.content.toLowerCase().includes(searchTerm) ||
+                        post.nickname.toLowerCase().includes(searchTerm) ||
+                        post.tag.toLowerCase().includes(searchTerm)
+                    );
+                }
+                
                 const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
                 const emptyMsg = lang === 'zh' ? '还没有留言，快来分享你的想法吧！' : 'No messages yet. Come share your thoughts!';
-                if (posts.length === 0) {
-                    forumPosts.innerHTML = `<div class="forum-empty" data-i18n="emptyMessage">${emptyMsg}</div>`;
+                const noResultsMsg = lang === 'zh' ? '没有找到相关帖子' : 'No posts found';
+                
+                if (filtered.length === 0) {
+                    forumPosts.innerHTML = `<div class="forum-empty">${searchTerm ? noResultsMsg : emptyMsg}</div>`;
                     return;
                 }
-                forumPosts.innerHTML = posts.sort((a, b) => new Date(b.time) - new Date(a.time))
-                    .map(post => `
+                
+                forumPosts.innerHTML = filtered.map(post => {
+                    const isFeatured = featuredIds.has(post.id);
+                    return `
                         <div class="forum-post">
                             <div class="forum-post-header">
                                 <div>
                                     <span class="forum-post-author">${escapeHtml(post.nickname || '匿名')}</span>
                                     <span class="forum-post-tag">${escapeHtml(post.tag || '其他')}</span>
+                                    ${isFeatured ? '<span class="forum-post-featured" data-i18n="featured">⭐ 精华</span>' : ''}
                                 </div>
-                                <span class="forum-post-time">${formatTime(post.time)}</span>
+                                <span class="forum-post-time">${formatTime(post.createdAt)}</span>
                             </div>
                             <div class="forum-post-content">${escapeHtml(post.content)}</div>
+                            <div class="forum-post-actions">
+                                <button class="forum-vote-btn" data-id="${post.id}" onclick="votePost('${post.id}')">
+                                    👍 <span class="forum-vote-count">${post.upvotes || 0}</span>
+                                </button>
+                            </div>
                         </div>
-                    `).join('');
+                    `;
+                }).join('');
             }
             
-            function savePost(nickname, content, tag) {
-                const posts = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-                posts.push({
-                    nickname,
-                    content,
-                    tag: tag || '其他',
-                    time: new Date().toISOString()
-                });
-                localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
-                loadPosts();
+            async function savePost(nickname, content, tag) {
+                try {
+                    const res = await fetch('/api/forum-posts', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ nickname, content, tag: tag || '其他' })
+                    });
+                    if (!res.ok) {
+                        const err = await res.json();
+                        throw new Error(err.error || 'Failed to post');
+                    }
+                    await loadPosts();
+                } catch (error) {
+                    console.error('Save post error:', error);
+                    const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                    const errorMsg = lang === 'zh' ? '发布失败，请稍后重试' : 'Failed to post, please try again';
+                    alert(errorMsg);
+                }
             }
             
-            forumSubmit.addEventListener('click', function() {
+            window.votePost = async function(id) {
+                try {
+                    const res = await fetch('/api/forum-vote', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ id })
+                    });
+                    if (!res.ok) throw new Error('Failed to vote');
+                    const data = await res.json();
+                    const btn = document.querySelector(`[data-id="${id}"]`);
+                    if (btn) {
+                        const countEl = btn.querySelector('.forum-vote-count');
+                        if (countEl) countEl.textContent = data.upvotes;
+                    }
+                    if (currentSort === 'hot') {
+                        await loadPosts();
+                    }
+                } catch (error) {
+                    console.error('Vote error:', error);
+                }
+            };
+            
+            forumSubmit.addEventListener('click', async function() {
                 const nickname = forumNickname.value.trim();
                 const content = forumTextarea.value.trim();
                 
@@ -585,11 +782,19 @@
                     return;
                 }
                 
-                savePost(nickname, content, selectedTag);
+                forumSubmit.disabled = true;
+                forumSubmit.textContent = window.currentLanguage && window.currentLanguage() === 'zh' ? '发布中...' : 'Posting...';
+                
+                await savePost(nickname, content, selectedTag);
+                
                 forumNickname.value = '';
                 forumTextarea.value = '';
                 forumTags.forEach(t => t.classList.remove('active'));
                 selectedTag = '';
+                
+                forumSubmit.disabled = false;
+                const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                forumSubmit.textContent = lang === 'zh' ? '发布留言' : 'Post Message';
             });
             
             function escapeHtml(text) {
@@ -634,7 +839,12 @@
                     otherTag: '其他',
                     submitBtn: '发布留言',
                     emptyMessage: '还没有留言，快来分享你的想法吧！',
-                    errorMessage: '请填写昵称和内容'
+                    errorMessage: '请填写昵称和内容',
+                    sortNew: '最新',
+                    sortHot: '最热',
+                    sortFeatured: '精华',
+                    searchPlaceholder: '搜索帖子...',
+                    featured: '⭐ 精华'
                 },
                 en: {
                     title: 'AI Forum',
@@ -644,7 +854,12 @@
                     otherTag: 'Other',
                     submitBtn: 'Post Message',
                     emptyMessage: 'No messages yet. Come share your thoughts!',
-                    errorMessage: 'Please fill in nickname and content'
+                    errorMessage: 'Please fill in nickname and content',
+                    sortNew: 'New',
+                    sortHot: 'Hot',
+                    sortFeatured: 'Featured',
+                    searchPlaceholder: 'Search posts...',
+                    featured: '⭐ Featured'
                 }
             };
 
@@ -673,6 +888,14 @@
                     const key = el.getAttribute('data-i18n-placeholder');
                     if (texts[key]) {
                         el.placeholder = texts[key];
+                    }
+                });
+
+                const sortBtns = document.querySelectorAll('.forum-sort-btn');
+                sortBtns.forEach(btn => {
+                    const key = btn.getAttribute('data-i18n');
+                    if (key && texts[key]) {
+                        btn.textContent = texts[key];
                     }
                 });
 
