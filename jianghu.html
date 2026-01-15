@@ -109,13 +109,21 @@
       const fetchGeoJSON = async (adcode) => {
         if (cache.has(adcode)) return cache.get(adcode);
         let geojson = null;
+        let lastErr = '';
         for (const url of [
+          `/api/geo?adcode=${adcode}`,
           `https://geo.datav.aliyun.com/areas_v3/bound/${adcode}_full.json`,
           `https://geo.datav.aliyun.com/areas_v3/bound/${adcode}.json`
         ]) {
-          try { geojson = await (await fetch(url, { cache: 'force-cache' })).json(); break; } catch (e) {}
+          try {
+            const r = await fetch(url, { cache: 'force-cache' });
+            if (!r.ok) { lastErr = `${r.status} ${url}`; continue; }
+            geojson = await r.json();
+            break;
+          } catch (e) { lastErr = `${String(e?.message || e)} ${url}`; }
         }
         if (geojson) cache.set(adcode, geojson);
+        if (!geojson && lastErr) setMsg(`地图数据加载失败：${lastErr}\n（若是 CORS/网络问题，已优先走 /api/geo 代理）`);
         return geojson;
       };
 
