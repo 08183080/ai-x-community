@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
   const adcode = String(req.query?.adcode || '100000').replace(/\D/g, '') || '100000';
   const url = `https://geo.datav.aliyun.com/areas_v3/bound/${adcode}_full.json`;
   try {
@@ -11,5 +11,5 @@ export default async function handler(req, res) {
   } catch (e) {
     return res.status(502).json({ error: 'fetch_failed', url, message: String(e?.message || e) });
   }
-}
+};
 

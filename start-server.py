@@ -11,6 +11,8 @@ import os
 import sys
 import json
 import urllib.parse
+import urllib.request
+import mimetypes
 
 PORT = 8000
 
@@ -45,22 +47,95 @@ def scan_directory(path, base_path=''):
 
 class MyHTTPRequestHandler(http.server.SimpleHTTPRequestHandler):
     def do_GET(self):
-        # API端点：扫描文件目录
-        if self.path == '/api/files':
+        parsed = urllib.parse.urlparse(self.path)
+        path_only = parsed.path
+        query = urllib.parse.parse_qs(parsed.query)
+
+        def send_json(code, obj):
+            self.send_response(code)
+            self.send_header('Content-Type', 'application/json; charset=utf-8')
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.end_headers()
+            self.wfile.write(json.dumps(obj, ensure_ascii=False).encode('utf-8'))
+
+        # API端点：扫描文件目录（历史数据）
+        if path_only == '/api/files':
             data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AI+X_history_data')
             if os.path.exists(data_dir):
                 files = scan_directory(data_dir, 'AI+X_history_data')
-                self.send_response(200)
-                self.send_header('Content-Type', 'application/json')
-                self.send_header('Access-Control-Allow-Origin', '*')
-                self.end_headers()
-                self.wfile.write(json.dumps(files, ensure_ascii=False).encode('utf-8'))
+                send_json(200, files)
             else:
-                self.send_response(404)
-                self.send_header('Content-Type', 'application/json')
+                send_json(404, {'error': 'Directory not found'})
+            return
+
+        # API端点：代理读取文件（对齐 Vercel 的 /api/file）
+        if path_only == '/api/file':
+            raw_path = query.get('path', [''])[0]
+            if not raw_path:
+                return send_json(400, {'error': 'Missing path parameter'})
+            decoded = urllib.parse.unquote(raw_path)
+            if decoded.startswith('/'):
+                decoded = decoded[1:]
+
+            base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AI+X_history_data')
+            if not os.path.exists(base_dir):
+                return send_json(404, {'error': 'Data directory not found'})
+
+            rel = decoded.replace('AI+X_history_data/', '')
+            full_path = os.path.join(base_dir, rel)
+            resolved = os.path.realpath(full_path)
+            allowed = os.path.realpath(base_dir)
+            if not resolved.startswith(allowed):
+                return send_json(403, {'error': 'Access denied'})
+            if not os.path.exists(full_path) or not os.path.isfile(full_path):
+                return send_json(404, {'error': 'File not found', 'path': decoded})
+
+            ctype, _ = mimetypes.guess_type(full_path)
+            if not ctype:
+                ext = os.path.splitext(full_path)[1].lower()
+                ctype = 'application/octet-stream' if ext else 'application/octet-stream'
+            self.send_response(200)
+            self.send_header('Content-Type', ctype)
+            self.send_header('Access-Control-Allow-Origin', '*')
+            self.send_header('Cache-Control', 'no-store')
+            self.end_headers()
+            with open(full_path, 'rb') as f:
+                self.wfile.write(f.read())
+            return
+
+        # API端点：扫描城市图片（对齐 Vercel 的 /api/city-photos）
+        if path_only == '/api/city-photos':
+            base_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'AI+X_history_data', '地图')
+            if not os.path.exists(base_dir):
+                return send_json(404, {'error': 'Directory not found', 'tried': [base_dir]})
+            out = {}
+            for city in sorted([d for d in os.listdir(base_dir) if os.path.isdir(os.path.join(base_dir, d))]):
+                city_dir = os.path.join(base_dir, city)
+                photos = []
+                for fn in sorted(os.listdir(city_dir)):
+                    low = fn.lower()
+                    if low.endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+                        rel = f"AI+X_history_data/地图/{city}/{fn}"
+                        photos.append({'src': f"/api/file?path={urllib.parse.quote(rel)}", 'title': os.path.splitext(fn)[0]})
+                if photos:
+                    out[city] = {'title': city, 'note': '', 'photos': photos}
+            return send_json(200, out)
+
+        # API端点：地图 GeoJSON 代理（对齐 Vercel 的 /api/geo）
+        if path_only == '/api/geo':
+            adcode = ''.join([c for c in query.get('adcode', ['100000'])[0] if c.isdigit()]) or '100000'
+            url = f"https://geo.datav.aliyun.com/areas_v3/bound/{adcode}_full.json"
+            try:
+                with urllib.request.urlopen(url, timeout=10) as resp:
+                    data = resp.read()
+                self.send_response(200)
+                self.send_header('Content-Type', 'application/json; charset=utf-8')
                 self.send_header('Access-Control-Allow-Origin', '*')
+                self.send_header('Cache-Control', 'no-store')
                 self.end_headers()
-                self.wfile.write(json.dumps({'error': 'Directory not found'}).encode('utf-8'))
+                self.wfile.write(data)
+            except Exception as e:
+                return send_json(502, {'error': 'fetch_failed', 'url': url, 'message': str(e)})
             return
         
         # 默认文件服务

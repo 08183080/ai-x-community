@@ -76,35 +76,90 @@
       const chart = echarts.init(document.getElementById('chart'));
       const cache = new Map(); // adcode -> geojson
       const stack = []; // [{ adcode, name }]
-      const normCity = (n) => String(n || '').replace(/(市|地区|盟|自治州|特别行政区)$/,'');
-      const cityPhotos = {
-        '嘉兴': { title: '嘉兴｜香海禅寺·图书馆', src: 'AI+X_history_data/xianghaichansi-library-jiaxing.jpg', note: '把照片文件放到上述路径即可显示。' }
-      };
+      const normCity = (n) => String(n || '').trim().replace(/\s+/g,'').replace(/[（(].*?[）)]/g,'').replace(/(市|地区|盟|自治州|特别行政区)$/,'');
+      let cityPhotos = null; // { 城市: { title, note, photos:[{src,title}] } }
+      let curPhotos = []; let curIdx = 0;
+      let curModalTitle = ''; let curNoteBase = '';
+      let cityPhotosPromise = null;
+      let cityPhotosError = '';
+      let pendingCityName = '';
       const closePhoto = () => { if (!photoModal) return; photoModal.classList.remove('active'); photoModal.setAttribute('aria-hidden', 'true'); };
-      const openPhoto = (cityName) => {
-        const key = cityPhotos[cityName] ? cityName : normCity(cityName);
-        const item = cityPhotos[key];
+      const showPhoto = (title, src, note) => {
         if (!photoModal || !photoImg || !photoTitle || !photoNote) return;
-        if (!item) {
-          photoTitle.textContent = `${cityName}`;
+        photoTitle.textContent = title || '';
+        photoImg.alt = title || '';
+        photoImg.onerror = null;
+        if (!src) {
+          photoImg.style.display = 'none';
           photoImg.removeAttribute('src');
-          photoImg.alt = '';
-          photoNote.textContent = '暂无该市照片（可在代码里 cityPhotos 增加映射）。';
-          photoModal.classList.add('active');
-          photoModal.setAttribute('aria-hidden', 'false');
-          return;
+        } else {
+          photoImg.style.display = 'block';
+          photoImg.src = src;
+          photoImg.onerror = async () => {
+            let extra = '';
+            try {
+              const r = await fetch(src, { cache: 'no-store' });
+              const t = await r.text();
+              extra = `\nHTTP ${r.status}\n${t.slice(0, 400)}`;
+            } catch (e) {
+              extra = `\n${String(e?.message || e)}`;
+            }
+            photoNote.textContent = `图片加载失败：${src}${extra}`;
+          };
         }
-        photoTitle.textContent = item.title || cityName;
-        photoImg.alt = item.title || cityName;
-        photoImg.src = item.src;
-        photoImg.onerror = () => { photoNote.textContent = `图片加载失败：${item.src}\n请确认文件存在，或换成可访问的 URL。`; };
-        photoNote.textContent = item.note || '';
+        photoNote.textContent = note || '';
         photoModal.classList.add('active');
         photoModal.setAttribute('aria-hidden', 'false');
       };
+      const loadCityPhotos = async () => {
+        if (cityPhotos || cityPhotosError) return cityPhotos;
+        if (cityPhotosPromise) return cityPhotosPromise;
+        cityPhotosPromise = (async () => {
+          try {
+            const r = await fetch('/api/city-photos', { cache: 'no-store' });
+            if (!r.ok) throw new Error(`HTTP ${r.status}`);
+            cityPhotos = await r.json();
+            return cityPhotos;
+          } catch (e) {
+            cityPhotosError = String(e?.message || e);
+            return null;
+          } finally {
+            cityPhotosPromise = null;
+          }
+        })();
+        return cityPhotosPromise;
+      };
+      const openPhoto = (cityName) => {
+        if (!cityPhotos) {
+          pendingCityName = cityName;
+          showPhoto(cityName, '', '照片库加载中…');
+          loadCityPhotos().then(() => {
+            const c = pendingCityName; pendingCityName = '';
+            if (!c) return;
+            if (cityPhotos) openPhoto(c);
+            else showPhoto(c, '', `照片库加载失败：${cityPhotosError || 'unknown'}\n请检查 /api/city-photos 是否能打开。`);
+          });
+          return;
+        }
+        const key = cityPhotos[cityName] ? cityName : normCity(cityName);
+        const item = cityPhotos[key];
+        if (!item?.photos?.length) return showPhoto(cityName, '', `暂无该市照片。\n把图片放到：AI+X_history_data/地图/${key}/ 里即可自动出现。`);
+        curPhotos = item.photos; curIdx = 0;
+        curModalTitle = item.title || cityName;
+        curNoteBase = (item.note ? item.note + '\n' : '');
+        const p = curPhotos[curIdx];
+        showPhoto(curModalTitle, p.src, curNoteBase + (curPhotos.length > 1 ? `共 ${curPhotos.length} 张（点击图片切换）` : (p.title || '')));
+      };
+      if (photoImg) photoImg.addEventListener('click', () => {
+        if (!curPhotos?.length) return;
+        curIdx = (curIdx + 1) % curPhotos.length;
+        const p = curPhotos[curIdx];
+        showPhoto(curModalTitle, p.src, curNoteBase + (curPhotos.length > 1 ? `共 ${curPhotos.length} 张（点击图片切换）` : (p.title || '')));
+      });
       if (photoClose) photoClose.addEventListener('click', closePhoto);
       if (photoModal) photoModal.addEventListener('click', (e) => { if (e.target === photoModal) closePhoto(); });
       document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePhoto(); });
+      loadCityPhotos();
 
       const fetchGeoJSON = async (adcode) => {
         if (cache.has(adcode)) return cache.get(adcode);
