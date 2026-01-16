@@ -39,3 +39,4 @@ curl -X POST https://your-domain.com/api/forum-feature \
 - [x] 1-15，增加AI论坛的功能。
 - [x] 1-15，添加英文版的支持。想起michael说的这句话。AI和出海，是这个时代的两大杠杆。
 - [x] 2026-01-15，论坛升级：从 localStorage 升级为 Vercel KV 存储，支持多人共享、最新/最热/精华排序、点赞功能。
+- [x] 1-16，让claude code（cc）给我的网页写个chatbot，调用智谱的免费的api。
