@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "description": "AI+X Community Forum",
   "dependencies": {
-    "@vercel/kv": "^0.2.1"
+    "@vercel/kv": "^0.2.1",
+    "bcryptjs": "^3.0.3",
+    "jsonwebtoken": "^9.0.3"
   }
 }

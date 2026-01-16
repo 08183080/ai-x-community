@@ -507,6 +507,84 @@
             box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
         }
 
+        /* User Auth */
+        .user-auth {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border-radius: 12px;
+            padding: 10px 15px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9em;
+        }
+
+        .user-name {
+            font-weight: bold;
+            color: #2c3e50;
+            font-size: 0.9em;
+        }
+
+        .auth-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .auth-btn {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 6px;
+            color: white;
+            font-family: 'Courier New', monospace;
+            font-size: 0.85em;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .auth-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.3);
+        }
+
+        .auth-btn.logout {
+            background: #ff6b6b;
+        }
+
+        .auth-btn.logout:hover {
+            box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+        }
+
+        .guest-warning {
+            font-size: 0.8em;
+            color: #888;
+            margin-left: 10px;
+        }
+
         @media (max-width: 768px) {
             .door-container {
                 width: 300px;
@@ -540,6 +618,20 @@
     </style>
 </head>
 <body>
+    <!-- User Auth -->
+    <div class="user-auth" id="userAuth">
+        <div id="userInfo" class="user-info" style="display: none;">
+            <div class="user-avatar" id="userAvatar">U</div>
+            <span class="user-name" id="userName"></span>
+            <button class="auth-btn logout" id="logoutBtn">登出</button>
+        </div>
+        <div id="authButtons" class="auth-buttons">
+            <button class="auth-btn" id="loginBtn">登录</button>
+            <button class="auth-btn" id="registerBtn">注册</button>
+        </div>
+        <span id="guestWarning" class="guest-warning">未登录只能匿名发帖</span>
+    </div>
+
     <!-- Language Switcher -->
     <div class="lang-switcher">
         <button class="lang-btn active" id="langZh" data-lang="zh">中文</button>
@@ -617,6 +709,136 @@
         setTimeout(() => {
             document.getElementById('forumContent').classList.add('visible');
         }, 3500);
+
+        // 用户认证模块
+        (function() {
+            'use strict';
+
+            const userInfo = document.getElementById('userInfo');
+            const authButtons = document.getElementById('authButtons');
+            const guestWarning = document.getElementById('guestWarning');
+            const userName = document.getElementById('userName');
+            const userAvatar = document.getElementById('userAvatar');
+            const loginBtn = document.getElementById('loginBtn');
+            const registerBtn = document.getElementById('registerBtn');
+            const logoutBtn = document.getElementById('logoutBtn');
+
+            let currentUser = null;
+
+            // 检查登录状态
+            async function checkAuth() {
+                const token = localStorage.getItem('token');
+                const savedUser = localStorage.getItem('user');
+
+                if (token && savedUser) {
+                    // 验证 token 是否有效
+                    try {
+                        const res = await fetch('/api/auth/me', {
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+
+                        if (res.ok) {
+                            currentUser = await res.json();
+                            localStorage.setItem('user', JSON.stringify(currentUser));
+                            showLoggedIn();
+                            return true;
+                        } else {
+                            // Token 无效，清除本地存储
+                            logout();
+                        }
+                    } catch (error) {
+                        console.error('Auth check error:', error);
+                        logout();
+                    }
+                }
+                showLoggedOut();
+                return false;
+            }
+
+            // 显示已登录状态
+            function showLoggedIn() {
+                userInfo.style.display = 'flex';
+                authButtons.style.display = 'none';
+                guestWarning.style.display = 'none';
+
+                if (currentUser) {
+                    userName.textContent = currentUser.username;
+                    userAvatar.textContent = currentUser.username.charAt(0).toUpperCase();
+                }
+
+                // 隐藏昵称输入框，登录用户不需要昵称
+                const forumNickname = document.getElementById('forumNickname');
+                if (forumNickname) {
+                    forumNickname.style.display = 'none';
+                }
+            }
+
+            // 显示未登录状态
+            function showLoggedOut() {
+                userInfo.style.display = 'none';
+                authButtons.style.display = 'flex';
+                guestWarning.style.display = 'inline';
+
+                // 显示昵称输入框，未登录用户需要昵称
+                const forumNickname = document.getElementById('forumNickname');
+                if (forumNickname) {
+                    forumNickname.style.display = 'block';
+                }
+            }
+
+            // 登出
+            async function logout() {
+                const token = localStorage.getItem('token');
+                if (token) {
+                    try {
+                        await fetch('/api/auth/logout', {
+                            method: 'POST',
+                            headers: {
+                                'Authorization': `Bearer ${token}`
+                            }
+                        });
+                    } catch (error) {
+                        console.error('Logout error:', error);
+                    }
+                }
+
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                currentUser = null;
+
+                showLoggedOut();
+
+                // 更新发帖表单
+                const forumNickname = document.getElementById('forumNickname');
+                if (forumNickname) {
+                    forumNickname.style.display = 'block';
+                    forumNickname.value = '';
+                }
+            }
+
+            // 登录按钮点击
+            loginBtn.addEventListener('click', () => {
+                window.location.href = 'auth.html?mode=login';
+            });
+
+            // 注册按钮点击
+            registerBtn.addEventListener('click', () => {
+                window.location.href = 'auth.html?mode=register';
+            });
+
+            // 登出按钮点击
+            logoutBtn.addEventListener('click', logout);
+
+            // 页面加载时检查登录状态
+            checkAuth();
+
+            // 暴露给全局
+            window.getCurrentUser = () => currentUser;
+            window.is_loggedIn = () => !!currentUser;
+            window.logout = logout;
+        })();
 
         // 论坛功能
         (function() {
@@ -772,29 +994,56 @@
             };
             
             forumSubmit.addEventListener('click', async function() {
-                const nickname = forumNickname.value.trim();
                 const content = forumTextarea.value.trim();
-                
-                if (!nickname || !content) {
+                const currentUser = window.getCurrentUser();
+
+                // 检查是否登录
+                if (currentUser) {
+                    // 已登录用户不需要昵称
+                    if (!content) {
+                        const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                        const errorMsg = lang === 'zh' ? '请填写内容' : 'Please fill in content';
+                        alert(errorMsg);
+                        return;
+                    }
+
+                    forumSubmit.disabled = true;
+                    forumSubmit.textContent = window.currentLanguage && window.currentLanguage() === 'zh' ? '发布中...' : 'Posting...';
+
+                    await savePost(currentUser.username, content, selectedTag);
+
+                    forumTextarea.value = '';
+                    forumTags.forEach(t => t.classList.remove('active'));
+                    selectedTag = '';
+
+                    forumSubmit.disabled = false;
                     const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
-                    const errorMsg = lang === 'zh' ? '请填写昵称和内容' : 'Please fill in nickname and content';
-                    alert(errorMsg);
-                    return;
+                    forumSubmit.textContent = lang === 'zh' ? '发布留言' : 'Post Message';
+                } else {
+                    // 未登录用户需要昵称
+                    const nickname = forumNickname.value.trim();
+
+                    if (!nickname || !content) {
+                        const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                        const errorMsg = lang === 'zh' ? '请填写昵称和内容' : 'Please fill in nickname and content';
+                        alert(errorMsg);
+                        return;
+                    }
+
+                    forumSubmit.disabled = true;
+                    forumSubmit.textContent = window.currentLanguage && window.currentLanguage() === 'zh' ? '发布中...' : 'Posting...';
+
+                    await savePost(nickname, content, selectedTag);
+
+                    forumNickname.value = '';
+                    forumTextarea.value = '';
+                    forumTags.forEach(t => t.classList.remove('active'));
+                    selectedTag = '';
+
+                    forumSubmit.disabled = false;
+                    const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
+                    forumSubmit.textContent = lang === 'zh' ? '发布留言' : 'Post Message';
                 }
-                
-                forumSubmit.disabled = true;
-                forumSubmit.textContent = window.currentLanguage && window.currentLanguage() === 'zh' ? '发布中...' : 'Posting...';
-                
-                await savePost(nickname, content, selectedTag);
-                
-                forumNickname.value = '';
-                forumTextarea.value = '';
-                forumTags.forEach(t => t.classList.remove('active'));
-                selectedTag = '';
-                
-                forumSubmit.disabled = false;
-                const lang = window.currentLanguage ? window.currentLanguage() : 'zh';
-                forumSubmit.textContent = lang === 'zh' ? '发布留言' : 'Post Message';
             });
             
             function escapeHtml(text) {

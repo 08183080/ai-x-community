@@ -23,3 +23,9 @@ desktop.ini
 
 # Logs
 *.log
+
+# Node
+node_modules/
+
+# Local data
+local_users.db
