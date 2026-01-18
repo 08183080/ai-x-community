@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI信息流 - 产品订阅</title>
+    <style>
+        /* CSS Variables */
+        :root {
+            --primary-color: #00ff88;
+            --primary-color-dark: #00cc6a;
+            --primary-color-light: #33ffaa;
+            --accent-color: #00d4ff;
+            --bg-gradient-start: #0a0a0a;
+            --bg-gradient-end: #1a1a2e;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(0, 255, 136, 0.2);
+            --glass-border-hover: rgba(0, 255, 136, 0.4);
+            --text-primary: #00ff88;
+            --text-secondary: rgba(0, 255, 136, 0.7);
+            --text-muted: rgba(0, 255, 136, 0.5);
+            --shadow-glow: rgba(0, 255, 136, 0.3);
+            --shadow-glow-strong: rgba(0, 255, 136, 0.5);
+            --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-fast: all 0.2s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            background-attachment: fixed;
+            color: var(--text-primary);
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Code Rain Canvas */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Back Button */
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1000;
+            background: var(--glass-bg);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            padding: 12px 24px;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.9em;
+            letter-spacing: 0.1em;
+            transition: var(--transition-smooth);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .back-button:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 8px 32px var(--shadow-glow);
+            transform: translateX(-5px);
+        }
+
+        /* Main Content */
+        .content {
+            position: relative;
+            z-index: 1;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 120px 20px 80px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            margin-bottom: 80px;
+        }
+
+        h1 {
+            font-size: 3.5em;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 30px var(--shadow-glow-strong);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            font-size: 1.2em;
+            opacity: 0.8;
+            letter-spacing: 0.15em;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        /* Features Section */
+        .features-section {
+            margin-bottom: 100px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 60px;
+        }
+
+        .feature-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 40px 30px;
+            transition: var(--transition-smooth);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .feature-card:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 40px var(--shadow-glow);
+            transform: translateY(-5px);
+        }
+
+        .feature-icon {
+            font-size: 3em;
+            margin-bottom: 20px;
+            text-shadow: 0 0 20px var(--shadow-glow);
+        }
+
+        .feature-title {
+            font-size: 1.3em;
+            margin-bottom: 15px;
+            color: var(--text-primary);
+            letter-spacing: 0.1em;
+        }
+
+        .feature-description {
+            font-size: 0.95em;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            opacity: 0.85;
+        }
+
+        /* Product Screenshots */
+        .screenshots-section {
+            margin-bottom: 100px;
+        }
+
+        .section-title {
+            font-size: 2em;
+            text-align: center;
+            margin-bottom: 50px;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 20px var(--shadow-glow);
+            background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .screenshot-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 40px;
+        }
+
+        .screenshot-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 20px;
+            transition: var(--transition-smooth);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .screenshot-card:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 40px var(--shadow-glow);
+            transform: translateY(-5px);
+        }
+
+        .screenshot-image {
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            display: block;
+        }
+
+        /* User Feedback */
+        .feedback-section {
+            margin-bottom: 100px;
+        }
+
+        .feedback-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .feedback-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 30px;
+            transition: var(--transition-smooth);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            text-align: center;
+        }
+
+        .feedback-card:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 40px var(--shadow-glow);
+            transform: translateY(-5px);
+        }
+
+        .feedback-image {
+            width: 100%;
+            max-width: 600px;
+            height: auto;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .feedback-quote {
+            font-size: 1.1em;
+            font-style: italic;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            letter-spacing: 0.05em;
+        }
+
+        /* Subscription Section */
+        .subscription-section {
+            margin-bottom: 100px;
+        }
+
+        /* Pricing Section */
+        .pricing-section {
+            margin-bottom: 100px;
+        }
+
+        .pricing-card {
+            background: var(--glass-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            padding: 60px 50px;
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            transition: var(--transition-smooth);
+        }
+
+        .pricing-card:hover {
+            border-color: var(--glass-border-hover);
+            box-shadow: 0 12px 48px rgba(0, 0, 0, 0.4), 0 0 40px var(--shadow-glow);
+        }
+
+        .price {
+            font-size: 3em;
+            font-weight: 300;
+            margin: 30px 0;
+            color: var(--text-primary);
+            text-shadow: 0 0 20px var(--shadow-glow);
+        }
+
+        .price span {
+            font-size: 0.5em;
+            opacity: 0.7;
+        }
+
+        .qr-code {
+            max-width: 250px;
+            width: 100%;
+            height: auto;
+            border-radius: 12px;
+            margin: 20px auto;
+            display: block;
+        }
+
+        .payment-info {
+            margin-top: 30px;
+            font-size: 1em;
+            color: var(--text-secondary);
+            line-height: 1.8;
+            letter-spacing: 0.1em;
+        }
+
+        .payment-note {
+            margin-top: 15px;
+            font-size: 0.9em;
+            color: var(--text-muted);
+            opacity: 0.8;
+        }
+
+        /* Footer */
+        .footer {
+            text-align: center;
+            margin-top: 100px;
+            padding-top: 50px;
+            border-top: 1px solid var(--glass-border);
+            font-size: 0.9em;
+            opacity: 0.6;
+            color: var(--text-muted);
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2.2em;
+            }
+
+            .subtitle {
+                font-size: 1em;
+            }
+
+            .content {
+                padding: 100px 20px 60px;
+            }
+
+            .back-button {
+                top: 15px;
+                left: 15px;
+                padding: 10px 20px;
+                font-size: 0.85em;
+            }
+
+            .screenshot-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .subscription-card,
+            .pricing-card {
+                padding: 40px 25px;
+            }
+
+            .price {
+                font-size: 2.5em;
+            }
+
+            .section-title {
+                font-size: 1.5em;
+            }
+        }
+
+        /* Scroll Animations */
+        @media (prefers-reduced-motion: no-preference) {
+            .feature-card,
+            .screenshot-card,
+            .feedback-card,
+            .subscription-card,
+            .pricing-card {
+                opacity: 0;
+                transform: translateY(30px);
+                transition: opacity 0.8s ease, transform 0.8s ease;
+            }
+
+            .feature-card.visible,
+            .screenshot-card.visible,
+            .feedback-card.visible,
+            .subscription-card.visible,
+            .pricing-card.visible {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="matrix"></canvas>
+    </div>
+
+    <a href="index.html" class="back-button">
+        <span>&larr;</span>
+        <span>返回首页</span>
+    </a>
+
+    <main class="content">
+        <header>
+            <h1>AI信息流</h1>
+            <p class="subtitle">每天晚上9点， GitHub趋势AI项目精选</p>
+        </header>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <h2 class="section-title">服务特色</h2>
+            <div class="feature-grid">
+                <div class="feature-card">
+                    <div class="feature-icon">⏰</div>
+                    <h3 class="feature-title">每日推送</h3>
+                    <p class="feature-description">每天晚上9点左右准时推送，不错过任何热门项目</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">🎯</div>
+                    <h3 class="feature-title">精选内容</h3>
+                    <p class="feature-description">从GitHub趋势中筛选最新、最有价值的AI项目</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon">📧</div>
+                    <h3 class="feature-title">邮件直达</h3>
+                    <p class="feature-description">直接发送到您的邮箱，方便随时查看</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Product Screenshots -->
+        <section class="screenshots-section">
+            <h2 class="section-title">产品展示</h2>
+            <div class="screenshot-grid">
+                <div class="screenshot-card">
+                    <img src="ai-news-flow/产品界面1.jpg" alt="产品界面1" class="screenshot-image">
+                </div>
+                <div class="screenshot-card">
+                    <img src="ai-news-flow/产品界面2.jpg" alt="产品界面2" class="screenshot-image">
+                </div>
+            </div>
+        </section>
+
+        <!-- User Feedback -->
+        <section class="feedback-section">
+            <h2 class="section-title">用户反馈</h2>
+            <div class="feedback-container">
+                <div class="feedback-card">
+                    <img src="ai-news-flow/用户反馈1.jpg" alt="用户反馈" class="feedback-image">
+                    <p class="feedback-quote">"每天都能收到最新的AI项目信息，非常实用！"</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Subscription Section -->
+        <section class="subscription-section">
+            <h2 class="section-title">订阅费用</h2>
+            <div class="pricing-card">
+                <div class="price">
+                    9.9 <span>元/年</span>
+                </div>
+                <img src="ai-news-flow/范西瓜.jpg" alt="收款码" class="qr-code">
+                <div class="payment-info">
+                    <p>扫描上方二维码支付</p>
+                    <p>支付后请发送支付截图和邮箱到微信</p>
+                </div>
+                <div class="payment-note">
+                    * 每天9点自动推送GitHub趋势AI项目
+                </div>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>&gt; AI信息流 - 产品订阅 &lt;</p>
+            <p style="margin-top: 10px;">Powered by AI+X Community</p>
+        </footer>
+    </main>
+
+    <script>
+        // Code Rain Animation Module
+        (function() {
+            'use strict';
+
+            const canvas = document.getElementById('matrix');
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            let animationId;
+            let columns;
+            let drops = [];
+
+            // Configuration
+            const config = {
+                chars: '01',
+                fontSize: 14,
+                speed: 33,
+                opacity: 0.3,
+                resetProbability: 0.975
+            };
+
+            function initCanvas() {
+                canvas.width = window.innerWidth;
+                canvas.height = window.innerHeight;
+                columns = Math.floor(canvas.width / config.fontSize);
+
+                // Initialize drops
+                drops = [];
+                for (let i = 0; i < columns; i++) {
+                    drops[i] = Math.random() * -100;
+                }
+            }
+
+            function draw() {
+                // Fade effect
+                ctx.fillStyle = `rgba(10, 10, 10, ${0.05 * (1 / config.opacity)})`;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Draw characters
+                ctx.fillStyle = '#00ff88';
+                ctx.font = `${config.fontSize}px Courier New`;
+
+                const charArray = config.chars.split('');
+
+                for (let i = 0; i < drops.length; i++) {
+                    const text = charArray[Math.floor(Math.random() * charArray.length)];
+                    const x = i * config.fontSize;
+                    const y = drops[i] * config.fontSize;
+
+                    // Fade effect for characters
+                    const opacity = Math.min(1, (canvas.height - y) / canvas.height);
+                    ctx.globalAlpha = opacity * 0.8;
+                    ctx.fillText(text, x, y);
+                    ctx.globalAlpha = 1;
+
+                    // Reset drop
+                    if (y > canvas.height && Math.random() > config.resetProbability) {
+                        drops[i] = 0;
+                    }
+                    drops[i]++;
+                }
+
+                animationId = requestAnimationFrame(() => {
+                    setTimeout(draw, config.speed / 2);
+                });
+            }
+
+            function handleResize() {
+                initCanvas();
+            }
+
+            // Initialize
+            initCanvas();
+            draw();
+
+            // Handle resize with debounce
+            let resizeTimeout;
+            window.addEventListener('resize', () => {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(handleResize, 250);
+            });
+        })();
+
+        // Scroll Animation Module
+        (function() {
+            'use strict';
+
+            if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                return;
+            }
+
+            const animatedElements = document.querySelectorAll(
+                '.feature-card, .screenshot-card, .feedback-card, .pricing-card'
+            );
+
+            if (animatedElements.length === 0) return;
+
+            const observerOptions = {
+                threshold: 0.2,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                    }
+                });
+            }, observerOptions);
+
+            animatedElements.forEach(element => {
+                observer.observe(element);
+            });
+        })();
+    </script>
+</body>
+</html>

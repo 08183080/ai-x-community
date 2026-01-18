@@ -1018,7 +1018,7 @@
                 <a href="https://my.feishu.cn/wiki/space/7493547114887233564?ccm_open_type=lark_wiki_spaceLink&open_tab_from=wiki_home" class="cta-button" target="_blank"><span data-i18n="knowledgeBase">AI+X 1.0知识库</span></a>
                 <a href="https://my.feishu.cn/wiki/XpuewZYP8iLSFHkbm7jcPfexn4d?from=from_copylink" class="cta-button" target="_blank"><span data-i18n="aiResources">AI资源/信息/留言箱</span></a>
                 <a href="#" class="cta-button" id="zhaoyangButton"><span data-i18n="zhaoyang">我是昭阳</span></a>
-                <a href="#" class="cta-button" id="infoStreamButton"><span data-i18n="infoStream">AI信息流</span></a>
+                <a href="ai-info-stream.html" class="cta-button"><span data-i18n="infoStream">AI信息流</span></a>
                 <a href="#" class="cta-button" id="aiBlindBoxButton"><span data-i18n="aiBlindBox">AI盲盒</span></a>
                 <a href="forum.html" class="cta-button"><span data-i18n="aiForum">AI论坛</span></a>
                 <a href="jianghu.html" class="cta-button"><span data-i18n="aiJianghu">AI江湖</span></a>
@@ -1123,15 +1123,6 @@
         </div>
     </div>
 
-    <!-- Info Stream Modal -->
-    <div class="modal-overlay" id="infoStreamModal">
-        <div class="modal-content">
-            <span class="modal-close" onclick="closeInfoStreamModal()">&times;</span>
-            <div style="text-align: center;">
-                <p style="color: var(--text-primary); font-size: 1.3em; line-height: 1.8; letter-spacing: 0.1em;" data-i18n="infoStreamDesc">人生第一个产品</p>
-            </div>
-        </div>
-    </div>
 
     <!-- AI Blind Box Modal -->
     <div class="modal-overlay" id="aiBlindBoxModal">
@@ -1404,59 +1395,6 @@
             window.closeZhaoyangModal = closeZhaoyangModal;
         })();
 
-        // Info Stream Modal Module
-        (function() {
-            'use strict';
-            
-            const infoStreamModal = document.getElementById('infoStreamModal');
-            const infoStreamButton = document.getElementById('infoStreamButton');
-            const infoStreamUrl = 'https://github.com/all-dataa/github-trending.git';
-            let redirectTimeout;
-            
-            if (!infoStreamModal || !infoStreamButton) return;
-            
-            function openInfoStreamModal() {
-                infoStreamModal.classList.add('active');
-                document.body.style.overflow = 'hidden';
-                // 立即跳转
-                window.open(infoStreamUrl, '_blank');
-                setTimeout(function() {
-                    closeInfoStreamModal();
-                }, 100);
-            }
-            
-            function closeInfoStreamModal(event) {
-                if (redirectTimeout) {
-                    clearTimeout(redirectTimeout);
-                    redirectTimeout = null;
-                }
-                if (event && event.target) {
-                    if (event.target.id === 'infoStreamModal' || event.target.classList.contains('modal-close')) {
-                        infoStreamModal.classList.remove('active');
-                        document.body.style.overflow = 'auto';
-                    }
-                } else {
-                    infoStreamModal.classList.remove('active');
-                    document.body.style.overflow = 'auto';
-                }
-            }
-            
-            infoStreamButton.addEventListener('click', function(e) {
-                e.preventDefault();
-                openInfoStreamModal();
-            });
-            
-            infoStreamModal.addEventListener('click', closeInfoStreamModal);
-            
-            document.addEventListener('keydown', function(event) {
-                if (event.key === 'Escape' && infoStreamModal.classList.contains('active')) {
-                    closeInfoStreamModal({target: {id: 'infoStreamModal'}});
-                }
-            });
-            
-            window.closeInfoStreamModal = closeInfoStreamModal;
-        })();
-
         // AI Blind Box Modal Module
         (function() {
             'use strict';
@@ -1549,7 +1487,6 @@
                     aiResourcesLabel: 'AI资源',
                     deepExchange: '深度交流',
                     zhaoyangDesc: '2024年12月用deepseek写的小说。',
-                    infoStreamDesc: '人生第一个产品',
                     aiBlindBoxDesc: '孙小鱼的产品。公众号：孙SamSun。'
                 },
                 en: {
@@ -1569,7 +1506,6 @@
                     aiResourcesLabel: 'AI Resources',
                     deepExchange: 'Deep Exchange',
                     zhaoyangDesc: 'A novel written with deepseek in December 2024.',
-                    infoStreamDesc: 'My first product',
                     aiBlindBoxDesc: 'Product by Sun Xiaoyu. WeChat Official Account: SunSamSun.'
                 }
             };
