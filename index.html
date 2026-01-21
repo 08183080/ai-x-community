@@ -1023,7 +1023,7 @@
                 <a href="forum.html" class="cta-button"><span data-i18n="aiForum">AI论坛</span></a>
                 <a href="jianghu.html" class="cta-button"><span data-i18n="aiJianghu">AI江湖</span></a>
                 <a href="https://sy8pzmhmun.feishu.cn/docx/C31rdARbtoD0zkxiG4ycDPSXnhf?from=from_copylink" class="cta-button" target="_blank"><span data-i18n="aiAcademicWriting">AI+学术论文写作</span></a>
-                <!-- <a href="" class="cta-button" target="_blank"><span data-i18n="zhaoyang">AI+学术论文写作</span></a> -->
+                <a href="https://sy8pzmhmun.feishu.cn/wiki/HMOQwXXiPiac40kMnoNcnfURnuW?from=from_copylink" class="cta-button" target="_blank"><span data-i18n="zhaoyang">AI+X博客集</span></a>
                  <!-- <a href="https://notebooklm.google.com/" class="cta-button" target="_blank"><span data-i18n="ai">noteboklm</span></a> -->
             </div>
         </header>
@@ -1147,15 +1147,15 @@
         // Code Rain Animation Module
         (function() {
             'use strict';
-            
+
             const canvas = document.getElementById('matrix');
             if (!canvas) return;
-            
+
             const ctx = canvas.getContext('2d');
             let animationId;
             let columns;
             let drops = [];
-            
+
             // Configuration
             const config = {
                 chars: '01',
@@ -1164,61 +1164,61 @@
                 opacity: 0.3,
                 resetProbability: 0.975
             };
-            
+
             function initCanvas() {
                 canvas.width = window.innerWidth;
                 canvas.height = window.innerHeight;
                 columns = Math.floor(canvas.width / config.fontSize);
-                
+
                 // Initialize drops
                 drops = [];
                 for (let i = 0; i < columns; i++) {
                     drops[i] = Math.random() * -100;
                 }
             }
-            
+
             function draw() {
                 // Fade effect
                 ctx.fillStyle = `rgba(10, 10, 10, ${0.05 * (1 / config.opacity)})`;
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
+
                 // Draw characters
                 ctx.fillStyle = '#00ff88';
                 ctx.font = `${config.fontSize}px Courier New`;
-                
+
                 const charArray = config.chars.split('');
-                
+
                 for (let i = 0; i < drops.length; i++) {
                     const text = charArray[Math.floor(Math.random() * charArray.length)];
                     const x = i * config.fontSize;
                     const y = drops[i] * config.fontSize;
-                    
+
                     // Fade effect for characters
                     const opacity = Math.min(1, (canvas.height - y) / canvas.height);
                     ctx.globalAlpha = opacity * 0.8;
                     ctx.fillText(text, x, y);
                     ctx.globalAlpha = 1;
-                    
+
                     // Reset drop
                     if (y > canvas.height && Math.random() > config.resetProbability) {
                         drops[i] = 0;
                     }
                     drops[i]++;
                 }
-                
+
                 animationId = requestAnimationFrame(() => {
                     setTimeout(draw, config.speed / 2);
                 });
             }
-            
+
             function handleResize() {
                 initCanvas();
             }
-            
+
             // Initialize
             initCanvas();
             draw();
-            
+
             // Handle resize with debounce
             let resizeTimeout;
             window.addEventListener('resize', () => {
