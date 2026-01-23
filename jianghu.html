@@ -18,7 +18,48 @@
     .card-title { font-weight: 600; opacity: .95; }
     .card-close { cursor: pointer; user-select: none; border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.06); color: #e6edf6; padding: 6px 10px; border-radius: 10px; }
     .card-bd { padding: 12px 14px 14px; }
-    .card-bd img { width: 100%; height: auto; display: block; border-radius: 12px; border: 1px solid rgba(255,255,255,.10); }
+    .photo-frame { position: relative; border-radius: 12px; border: 1px solid rgba(255,255,255,.10); overflow: hidden; background: rgba(7,10,16,.6); }
+    .photo-frame.is-loading::after {
+      content: "加载中…";
+      position: absolute; inset: 0;
+      display: grid; place-items: center;
+      color: rgba(230,237,246,.85);
+      font-size: 12px; letter-spacing: .06em;
+      background: rgba(8,10,16,.35);
+      pointer-events: none;
+    }
+    .photo-frame img {
+      width: 100%; height: auto; display: block;
+      opacity: 1; transition: opacity .22s ease;
+    }
+    .photo-nav {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(12,16,24,.65);
+      color: #e6edf6; padding: 8px 10px;
+      border-radius: 999px; cursor: pointer;
+      backdrop-filter: blur(6px);
+    }
+    .photo-nav[disabled] { opacity: .35; cursor: not-allowed; }
+    .photo-nav.prev { left: 10px; }
+    .photo-nav.next { right: 10px; }
+    .photo-counter {
+      position: absolute; right: 12px; bottom: 10px;
+      font-size: 12px; padding: 4px 8px;
+      border-radius: 999px; background: rgba(12,16,24,.65);
+      border: 1px solid rgba(255,255,255,.15);
+    }
+    .photo-dots {
+      position: absolute; left: 12px; bottom: 10px;
+      display: flex; gap: 6px; align-items: center;
+    }
+    .photo-dot {
+      width: 8px; height: 8px; border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.4);
+      background: rgba(255,255,255,.18);
+      cursor: pointer; padding: 0;
+    }
+    .photo-dot.active { background: #6aa7ff; border-color: #6aa7ff; }
     .card-note { margin-top: 10px; font-size: 12px; opacity: .75; white-space: pre-line; }
   </style>
 </head>
@@ -37,7 +78,13 @@
         <button class="card-close" id="photoClose">关闭</button>
       </div>
       <div class="card-bd">
-        <img id="photoImg" alt="" />
+        <div class="photo-frame" id="photoFrame">
+          <img id="photoImg" alt="" />
+          <button class="photo-nav prev" id="photoPrev" aria-label="上一张">‹</button>
+          <button class="photo-nav next" id="photoNext" aria-label="下一张">›</button>
+          <div class="photo-counter" id="photoCounter"></div>
+          <div class="photo-dots" id="photoDots" aria-label="图片序列"></div>
+        </div>
         <div class="card-note" id="photoNote"></div>
       </div>
     </div>
@@ -53,6 +100,11 @@
       const photoTitle = document.getElementById('photoTitle');
       const photoImg = document.getElementById('photoImg');
       const photoNote = document.getElementById('photoNote');
+      const photoFrame = document.getElementById('photoFrame');
+      const photoPrev = document.getElementById('photoPrev');
+      const photoNext = document.getElementById('photoNext');
+      const photoCounter = document.getElementById('photoCounter');
+      const photoDots = document.getElementById('photoDots');
       const loadScript = (src) => new Promise((resolve, reject) => {
         const s = document.createElement('script');
         s.src = src; s.async = true;
@@ -83,7 +135,13 @@
       let cityPhotosPromise = null;
       let cityPhotosError = '';
       let pendingCityName = '';
+      let switchToken = 0;
       const closePhoto = () => { if (!photoModal) return; photoModal.classList.remove('active'); photoModal.setAttribute('aria-hidden', 'true'); };
+      const joinNote = (extra) => {
+        if (!extra) return curNoteBase || '';
+        if (!curNoteBase) return extra;
+        return curNoteBase.endsWith('\n') ? curNoteBase + extra : `${curNoteBase}\n${extra}`;
+      };
       const showPhoto = (title, src, note) => {
         if (!photoModal || !photoImg || !photoTitle || !photoNote) return;
         photoTitle.textContent = title || '';
@@ -110,6 +168,64 @@
         photoNote.textContent = note || '';
         photoModal.classList.add('active');
         photoModal.setAttribute('aria-hidden', 'false');
+      };
+      const preloadImage = (src) => new Promise((resolve, reject) => {
+        if (!src) return resolve(null);
+        const img = new Image();
+        img.onload = () => resolve(img);
+        img.onerror = reject;
+        img.src = src;
+      });
+      const updateIndicators = () => {
+        const multi = curPhotos.length > 1;
+        if (photoPrev) { photoPrev.disabled = !multi; photoPrev.style.display = multi ? '' : 'none'; }
+        if (photoNext) { photoNext.disabled = !multi; photoNext.style.display = multi ? '' : 'none'; }
+        if (photoCounter) {
+          photoCounter.textContent = curPhotos.length ? `${curIdx + 1}/${curPhotos.length}` : '';
+          photoCounter.style.display = curPhotos.length ? '' : 'none';
+        }
+        if (photoDots) {
+          photoDots.innerHTML = '';
+          if (!multi) { photoDots.style.display = 'none'; return; }
+          photoDots.style.display = '';
+          curPhotos.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.type = 'button';
+            dot.className = `photo-dot${i === curIdx ? ' active' : ''}`;
+            dot.setAttribute('aria-label', `第 ${i + 1} 张`);
+            dot.addEventListener('click', () => setPhoto(i));
+            photoDots.appendChild(dot);
+          });
+        }
+      };
+      const buildNote = (photo) => {
+        if (curPhotos.length > 1) {
+          return joinNote(`共 ${curPhotos.length} 张 · ${curIdx + 1}/${curPhotos.length}（左右按钮/键盘/点点切换）`);
+        }
+        return joinNote(photo?.title || '');
+      };
+      const setPhoto = async (nextIdx) => {
+        if (!curPhotos?.length) return;
+        const token = ++switchToken;
+        curIdx = (nextIdx + curPhotos.length) % curPhotos.length;
+        const p = curPhotos[curIdx];
+        updateIndicators();
+        if (photoFrame) photoFrame.classList.add('is-loading');
+        try { await preloadImage(p?.src); } catch (e) {}
+        if (token !== switchToken) return;
+        if (!photoImg) return;
+        const note = buildNote(p);
+        photoImg.style.opacity = '0';
+        const finalize = () => {
+          if (token !== switchToken) return;
+          showPhoto(curModalTitle, p?.src, note);
+          requestAnimationFrame(() => {
+            if (photoImg) photoImg.style.opacity = '1';
+            if (photoFrame) photoFrame.classList.remove('is-loading');
+          });
+        };
+        photoImg.addEventListener('transitionend', finalize, { once: true });
+        setTimeout(finalize, 220);
       };
       const loadCityPhotos = async () => {
         if (cityPhotos || cityPhotosError) return cityPhotos;
@@ -147,18 +263,22 @@
         curPhotos = item.photos; curIdx = 0;
         curModalTitle = item.title || cityName;
         curNoteBase = (item.note ? item.note + '\n' : '');
-        const p = curPhotos[curIdx];
-        showPhoto(curModalTitle, p.src, curNoteBase + (curPhotos.length > 1 ? `共 ${curPhotos.length} 张（点击图片切换）` : (p.title || '')));
+        setPhoto(0);
       };
       if (photoImg) photoImg.addEventListener('click', () => {
         if (!curPhotos?.length) return;
-        curIdx = (curIdx + 1) % curPhotos.length;
-        const p = curPhotos[curIdx];
-        showPhoto(curModalTitle, p.src, curNoteBase + (curPhotos.length > 1 ? `共 ${curPhotos.length} 张（点击图片切换）` : (p.title || '')));
+        setPhoto(curIdx + 1);
       });
+      if (photoPrev) photoPrev.addEventListener('click', () => setPhoto(curIdx - 1));
+      if (photoNext) photoNext.addEventListener('click', () => setPhoto(curIdx + 1));
       if (photoClose) photoClose.addEventListener('click', closePhoto);
       if (photoModal) photoModal.addEventListener('click', (e) => { if (e.target === photoModal) closePhoto(); });
-      document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closePhoto(); });
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') closePhoto();
+        if (!photoModal || !photoModal.classList.contains('active')) return;
+        if (e.key === 'ArrowRight') setPhoto(curIdx + 1);
+        if (e.key === 'ArrowLeft') setPhoto(curIdx - 1);
+      });
       loadCityPhotos();
 
       const fetchGeoJSON = async (adcode) => {
