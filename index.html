@@ -124,7 +124,9 @@
         .feishu-corner {
             position: fixed;
             bottom: 20px;
+            bottom: calc(20px + env(safe-area-inset-bottom));
             right: 20px;
+            right: calc(20px + env(safe-area-inset-right));
             z-index: 1000;
             text-align: center;
             opacity: 0.7;
@@ -137,6 +139,9 @@
             border-radius: 12px;
             padding: 15px 20px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
         .feishu-corner:hover {
@@ -144,6 +149,12 @@
             border-color: var(--glass-border-hover);
             box-shadow: 0 8px 32px var(--shadow-glow);
             transform: translateY(-2px);
+        }
+
+        .feishu-corner:focus-visible {
+            outline: 2px solid var(--accent-color);
+            outline-offset: 3px;
+            opacity: 1;
         }
 
         .feishu-image {
@@ -212,6 +223,15 @@
             }
             to {
                 opacity: 1;
+            }
+        }
+
+        @keyframes cornerGlowPulse {
+            0%, 100% {
+                box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            }
+            50% {
+                box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35), 0 0 22px var(--shadow-glow);
             }
         }
 
@@ -622,13 +642,26 @@
             }
 
             .feishu-corner {
-                bottom: 15px;
-                right: 15px;
-                padding: 12px 16px;
+                bottom: 12px;
+                bottom: calc(12px + env(safe-area-inset-bottom));
+                right: 12px;
+                right: calc(12px + env(safe-area-inset-right));
+                padding: 10px 14px;
+                border-radius: 999px;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                text-align: left;
+                max-width: min(85vw, 260px);
             }
 
             .feishu-image {
-                width: 150px;
+                display: none;
+            }
+
+            .feishu-text {
+                font-size: 0.95em;
+                letter-spacing: 0.06em;
             }
 
             .modal-content {
@@ -659,6 +692,15 @@
                 padding: 14px 35px;
                 font-size: 0.9em;
             }
+
+            .feishu-corner {
+                padding: 9px 12px;
+            }
+
+            .feishu-text {
+                font-size: 0.9em;
+                letter-spacing: 0.05em;
+            }
         }
 
         /* Scroll Animations */
@@ -667,6 +709,12 @@
                 opacity: 0;
                 transform: translateY(30px);
                 transition: opacity 0.8s ease, transform 0.8s ease;
+            }
+        }
+
+        @media (prefers-reduced-motion: no-preference) and (max-width: 768px) {
+            .feishu-corner {
+                animation: cornerGlowPulse 2.8s ease-in-out infinite;
             }
         }
 
@@ -1074,7 +1122,7 @@
     </div>
 
     <!-- Feishu Group Corner -->
-    <div class="feishu-corner" id="feishuCorner">
+    <div class="feishu-corner" id="feishuCorner" role="button" tabindex="0" aria-label="打开飞书群二维码">
         <img src="我AI飞书群.jpg" alt="飞书群二维码" class="feishu-image">
         <div class="feishu-text" data-i18n="deepExchange">深度交流</div>
     </div>
@@ -1337,6 +1385,13 @@
             feishuCorner.addEventListener('click', function(e) {
                 e.preventDefault();
                 openFeishuModal();
+            });
+
+            feishuCorner.addEventListener('keydown', function(e) {
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    openFeishuModal();
+                }
             });
             
             feishuModal.addEventListener('click', closeFeishuModal);
