@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI社群</title>
+  <style>
+    :root {
+      --primary-color: #00ff88;
+      --primary-color-dark: #00cc6a;
+      --primary-color-light: #33ffaa;
+      --accent-color: #00d4ff;
+      --bg-gradient-start: #0a0a0a;
+      --bg-gradient-end: #1a1a2e;
+      --glass-bg: rgba(255, 255, 255, 0.05);
+      --glass-border: rgba(0, 255, 136, 0.2);
+      --glass-border-hover: rgba(0, 255, 136, 0.4);
+      --text-primary: #00ff88;
+      --text-secondary: rgba(0, 255, 136, 0.7);
+      --text-muted: rgba(0, 255, 136, 0.5);
+      --shadow-glow: rgba(0, 255, 136, 0.3);
+      --shadow-glow-strong: rgba(0, 255, 136, 0.5);
+      --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      --transition-fast: all 0.2s ease;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    #canvas-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .content {
+      position: relative;
+      z-index: 1;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 70px 20px 90px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 34px;
+    }
+
+    h1 {
+      font-size: 3em;
+      font-weight: 300;
+      letter-spacing: 0.25em;
+      margin-bottom: 14px;
+      text-shadow: 0 0 30px var(--shadow-glow-strong);
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .subtitle {
+      font-size: 1.05em;
+      opacity: 0.85;
+      letter-spacing: 0.12em;
+      color: var(--text-secondary);
+      margin-bottom: 22px;
+    }
+
+    .top-actions {
+      display: flex;
+      gap: 14px;
+      justify-content: center;
+      flex-wrap: wrap;
+      margin-top: 6px;
+    }
+
+    .cta-button {
+      display: inline-block;
+      padding: 14px 34px;
+      border: 1px solid var(--glass-border-hover);
+      background: var(--glass-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      letter-spacing: 0.18em;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      text-decoration: none;
+      border-radius: 10px;
+      position: relative;
+      overflow: hidden;
+      opacity: 0.9;
+    }
+
+    .cta-button:hover {
+      background: rgba(0, 255, 136, 0.1);
+      box-shadow: 0 0 40px var(--shadow-glow-strong);
+      transform: translateY(-3px);
+      border-color: var(--primary-color);
+      opacity: 1;
+    }
+
+    .panel {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      padding: 18px 18px 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+    }
+
+    .search {
+      flex: 1;
+      min-width: min(520px, 100%);
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .search input {
+      flex: 1;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      padding: 12px 14px;
+      color: var(--text-primary);
+      font-family: 'Courier New', monospace;
+      font-size: 0.95em;
+      outline: none;
+      transition: var(--transition-fast);
+    }
+
+    .search input:focus {
+      border-color: var(--glass-border-hover);
+      box-shadow: 0 0 12px var(--shadow-glow);
+    }
+
+    .search .hint {
+      color: var(--text-muted);
+      font-size: 0.85em;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    .stats {
+      color: var(--text-muted);
+      font-size: 0.9em;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    /* Graph (clean, low-line density) */
+    .graph-wrap {
+      position: relative;
+      width: 100%;
+      min-height: 560px;
+      padding: 18px 10px 28px;
+      border: 1px solid var(--glass-border);
+      border-radius: 14px;
+      background: rgba(0, 0, 0, 0.18);
+      overflow: hidden;
+    }
+
+    .graph-lines {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .graph-area {
+      position: relative;
+      z-index: 1;
+      padding: 14px 10px 18px;
+    }
+
+    .graph-root {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      margin-bottom: 18px;
+    }
+
+    .graph-categories {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      flex-wrap: wrap;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .node {
+      min-width: 180px;
+      max-width: 320px;
+      padding: 14px 16px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.35);
+      border-radius: 12px;
+      color: rgba(255, 255, 255, 0.92);
+      font-family: 'Courier New', monospace;
+      letter-spacing: 0.06em;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      text-align: center;
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+    }
+
+    .node.active {
+      border-color: rgba(0, 212, 255, 0.85);
+      box-shadow: 0 12px 44px rgba(0, 0, 0, 0.5), 0 0 22px rgba(0, 212, 255, 0.22);
+    }
+
+    .node:hover {
+      transform: translateY(-3px);
+      border-color: rgba(255, 255, 255, 0.65);
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45), 0 0 18px rgba(0, 255, 136, 0.25);
+    }
+
+    .node:focus-visible {
+      outline: 2px solid var(--accent-color);
+      outline-offset: 3px;
+    }
+
+    .node .badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0, 255, 136, 0.35);
+      background: rgba(0, 255, 136, 0.08);
+      color: var(--text-secondary);
+      font-size: 0.78em;
+      letter-spacing: 0.08em;
+      white-space: nowrap;
+    }
+
+    .node.dim { opacity: 0.25; transform: none; box-shadow: none; }
+
+    .category-detail {
+      margin-top: 14px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(0, 255, 136, 0.18);
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .detail-title {
+      color: var(--text-primary);
+      font-size: 1.05em;
+      letter-spacing: 0.12em;
+      opacity: 0.95;
+    }
+
+    .detail-sub {
+      color: var(--text-muted);
+      font-size: 0.9em;
+      letter-spacing: 0.08em;
+      opacity: 0.95;
+      white-space: nowrap;
+    }
+
+    .group-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 14px;
+    }
+
+    .group-card {
+      text-align: left;
+      padding: 14px 14px 12px;
+      min-width: 0;
+      max-width: none;
+    }
+
+    .group-title {
+      color: rgba(255, 255, 255, 0.94);
+      letter-spacing: 0.06em;
+      line-height: 1.35;
+      font-size: 0.98em;
+      margin-bottom: 8px;
+    }
+
+    .group-meta {
+      color: var(--text-secondary);
+      font-size: 0.86em;
+      letter-spacing: 0.05em;
+      line-height: 1.55;
+      opacity: 0.95;
+    }
+
+    .group-pills {
+      margin-top: 10px;
+    }
+
+    .group-card.dim { opacity: 0.22; box-shadow: none; transform: none; }
+    .group-card.match {
+      border-color: rgba(0, 212, 255, 0.85);
+      box-shadow: 0 12px 44px rgba(0, 0, 0, 0.5), 0 0 22px rgba(0, 212, 255, 0.22);
+    }
+
+    .legend {
+      margin-top: 12px;
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9em;
+      letter-spacing: 0.08em;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(5px);
+      -webkit-backdrop-filter: blur(5px);
+      z-index: 2000;
+      display: none;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      animation: fadeIn 0.3s ease;
+    }
+    .modal-overlay.active { display: flex; }
+
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .modal-content {
+      background: var(--glass-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--glass-border);
+      border-radius: 16px;
+      max-width: 680px;
+      width: 100%;
+      max-height: 84vh;
+      overflow-y: auto;
+      padding: 44px 34px 34px;
+      position: relative;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 60px var(--shadow-glow);
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 18px;
+      right: 22px;
+      font-size: 2em;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: var(--transition-fast);
+      line-height: 1;
+      color: var(--text-primary);
+    }
+    .modal-close:hover { opacity: 1; transform: rotate(90deg); color: var(--accent-color); }
+
+    .modal-title {
+      font-size: 1.7em;
+      font-weight: 300;
+      letter-spacing: 0.14em;
+      margin-bottom: 18px;
+      text-align: center;
+      text-shadow: 0 0 20px var(--shadow-glow);
+      background: linear-gradient(135deg, var(--primary-color), var(--accent-color));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .modal-body {
+      font-size: 0.95em;
+      line-height: 1.9;
+      color: var(--text-secondary);
+    }
+
+    .kv {
+      margin: 12px 0 0;
+      padding: 12px 14px;
+      border: 1px solid var(--glass-border);
+      border-radius: 12px;
+      background: rgba(0, 0, 0, 0.18);
+    }
+
+    .kv strong { color: var(--text-primary); font-weight: 600; }
+
+    .pill {
+      display: inline-block;
+      margin: 6px 6px 0 0;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--glass-border);
+      background: rgba(0, 255, 136, 0.08);
+      color: var(--text-secondary);
+      font-size: 0.85em;
+      letter-spacing: 0.06em;
+      white-space: nowrap;
+    }
+
+    @media (max-width: 768px) {
+      .content { padding: 56px 16px 80px; }
+      h1 { font-size: 2.2em; letter-spacing: 0.18em; }
+      .subtitle { font-size: 0.98em; letter-spacing: 0.08em; }
+      .graph-wrap { min-height: 640px; }
+      .node { min-width: 150px; max-width: 92vw; }
+      .group-grid { grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
+      .modal-content { padding: 42px 18px 28px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="canvas-container"><canvas id="matrix"></canvas></div>
+
+  <main class="content">
+    <header>
+      <h1>AI社群</h1>
+      <div class="subtitle">可视化树形“区块链”结构 · 点击区块查看详情</div>
+      <div class="top-actions">
+        <a class="cta-button" href="index.html">返回首页</a>
+        <a class="cta-button" href="forum.html">AI论坛</a>
+      </div>
+    </header>
+
+    <section class="panel" aria-label="AI社群树">
+      <div class="toolbar">
+        <div class="search">
+          <input id="searchInput" type="text" placeholder="搜索群名 / 群主 / 微信 / 标签…" />
+          <div class="hint">支持模糊匹配</div>
+        </div>
+        <div class="stats" id="statsText">加载中…</div>
+      </div>
+
+      <div class="graph-wrap" id="graphWrap">
+        <svg class="graph-lines" id="graphLines" aria-hidden="true"></svg>
+        <div class="graph-area" id="graphArea" aria-label="社群结构图（低密度连线）">
+          <div class="graph-root">
+            <button type="button" class="node" id="rootNode" aria-label="查看全部社群">AI+X 社群链<div class="badge" id="rootBadge">加载中</div></button>
+          </div>
+          <div class="graph-categories" id="categoryRow" aria-label="社群分类"></div>
+
+          <div class="category-detail" id="categoryDetail">
+            <div class="detail-head">
+              <div class="detail-title" id="detailTitle">全部社群</div>
+              <div class="detail-sub" id="detailSub">点击上方分类查看列表</div>
+            </div>
+            <div class="group-grid" id="groupGrid" aria-label="社群列表"></div>
+          </div>
+        </div>
+      </div>
+      <div class="legend" id="legendText">提示：主视图只画“根 → 分类”连线；群列表在下方卡片区展示</div>
+    </section>
+  </main>
+
+  <div class="modal-overlay" id="nodeModal" aria-label="节点信息">
+    <div class="modal-content">
+      <span class="modal-close" id="nodeModalClose">&times;</span>
+      <div class="modal-title" id="nodeTitle">节点</div>
+      <div class="modal-body" id="nodeBody"></div>
+    </div>
+  </div>
+
+  <script>
+    // Matrix rain (same vibe as index)
+    (function () {
+      'use strict';
+      const canvas = document.getElementById('matrix');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let columns;
+      let drops = [];
+      const config = { chars: '01', fontSize: 14, speed: 18, opacity: 0.3, resetProbability: 0.975 };
+
+      function init() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        columns = Math.floor(canvas.width / config.fontSize);
+        drops = [];
+        for (let i = 0; i < columns; i++) drops[i] = Math.random() * -100;
+      }
+
+      function draw() {
+        ctx.fillStyle = `rgba(10, 10, 10, ${0.05 * (1 / config.opacity)})`;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = '#00ff88';
+        ctx.font = `${config.fontSize}px Courier New`;
+        const charArray = config.chars.split('');
+        for (let i = 0; i < drops.length; i++) {
+          const text = charArray[Math.floor(Math.random() * charArray.length)];
+          const x = i * config.fontSize;
+          const y = drops[i] * config.fontSize;
+          const op = Math.min(1, (canvas.height - y) / canvas.height);
+          ctx.globalAlpha = op * 0.8;
+          ctx.fillText(text, x, y);
+          ctx.globalAlpha = 1;
+          if (y > canvas.height && Math.random() > config.resetProbability) drops[i] = 0;
+          drops[i]++;
+        }
+        requestAnimationFrame(() => setTimeout(draw, config.speed));
+      }
+
+      init();
+      draw();
+      let t;
+      window.addEventListener('resize', () => {
+        clearTimeout(t);
+        t = setTimeout(init, 200);
+      });
+    })();
+
+    // Data (来源：AI+X社群清单【全社群】.pdf)
+    // 说明：PDF 提到二维码列，但导出的文本里无法稳定拿到二维码图片，所以此处用“联系群主/管理员微信”作为入群方式。
+    const GROUPS = [
+      // 根群/核心
+      { id: 'root-aix', name: '最接地气的AI【AI+X】', owner: '谢苹果', wechat: '19121220286', size: '500（已满）', level: '根群，原始区块', tags: ['根群', '核心'], desc: '最接地气聊AI。' },
+      { id: 'root-ecnu', name: '最AI【AI+华东师大】（1群/2群/3群）', owner: '谢苹果', wechat: '19121220286', size: '500（已满）', level: '第2个根群', tags: ['根群', '高校'], desc: '70%华师学生，30%AI圈子聊AI。' },
+      { id: 'root-owners', name: '最AI【AI+群主】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '群主群', tags: ['核心'], desc: '所有 AI+ 群主的群。' },
+      { id: 'root-deepseek', name: 'deepseek边界探索群（1群~11群）', owner: '谢苹果', wechat: '19121220286', size: '每群200人', level: '社会实验/承接流量', tags: ['根群', '实验'], desc: '谢苹果花了3天承接 deepseek 流量搞出的群，可做社会实验；目前成为广告群和自媒体交流群。' },
+      { id: 'root-love', name: '最AI【AI+婚恋】', owner: 'Gerry', wechat: 'SuperSun77gerry', size: '150+', level: '根群外社区最活跃的群', tags: ['活跃', '社交'], desc: '不婚不恋，八卦吃瓜。' },
+
+      // 城市群
+      { id: 'city-sh', name: '最AI【AI+上海】', owner: '玉兔儿', wechat: 'U2_my_sunshine', size: '100+', level: '城市群', tags: ['城市群', '上海'], desc: '上海地区交流分群。' },
+      { id: 'city-hz', name: '最AI【AI+杭州】', owner: '沐沐', wechat: '15967899445', size: '78', level: '城市群', tags: ['城市群', '杭州'], desc: '杭州圈子 AI 爱好者日常交流。' },
+      { id: 'city-gz', name: '最AI【AI+广州】', owner: '张月亮', wechat: 'MonologueAurora', size: '25', level: '城市群', tags: ['城市群', '广州'], desc: '广州地区交流分群。' },
+
+      // 高校群
+      { id: 'uni-suda', name: '最接地气的AI【AI+苏州大学】', owner: '孙小鱼', wechat: 'ZhenMing_39', size: '101', level: '高校群', tags: ['高校群', '苏州大学'], desc: '苏州大学相关交流。' },
+
+      // 职业/主题/兴趣
+      { id: 'job-pm', name: '最AI【AI+产品经理】', owner: '文俊', wechat: 'xiaoksile', size: '90+', level: 'AI+职业：产品', tags: ['职业群', '产品'], desc: '欢迎对产品经理职位感兴趣或者已经在岗的产品朋友们。' },
+      { id: 'topic-freelance', name: '最AI【AI+自由职业】', owner: '文俊', wechat: 'xiaoksile', size: '20+', level: 'AI+主题系列', tags: ['主题群', '自由职业'], desc: '欢迎对自由职业感兴趣的同学加入。' },
+      { id: 'topic-english', name: '最AI【AI+英语】', owner: "IF'`Everything", wechat: '13698762557', size: '—', level: '主题群', tags: ['主题群', '英语'], desc: 'AI + 英语学习交流。' },
+      { id: 'topic-kejia', name: '最AI【AI+客家人】', owner: '与龙共弈', wechat: '906992048', size: '22', level: '主题群', tags: ['主题群', '客家'], desc: 'AI，客家人交流。' },
+      { id: 'topic-sos', name: '最AI【AI+技术求助sos】', owner: '付能力迅', wechat: '18053698471', size: '60+', level: '技术储备力量', tags: ['互助', '技术'], desc: 'AI技术互助｜疑难秒解｜前沿资源共享。' },
+      { id: 'topic-photo', name: '最AI【AI+摄影｜自媒体】', owner: 'Larry', wechat: '13918390707', size: '40+', level: '计划运营矩阵账号', tags: ['自媒体', '摄影'], desc: 'AI赋能摄影，自媒体赛道探索。' },
+      { id: 'topic-play', name: '最AI【AI+玩赚||工具-教程】', owner: '数瞳', wechat: 'sczxm6666', size: '10', level: '资源/教程/玩法/变现', tags: ['工具', '教程', '变现'], desc: '聚焦AI最新前沿资讯，搜集AI相关知识和工具，AI应用实操和技巧，AI玩法教程分享和变现方法拆解。' },
+
+      // 垂直/兴趣
+      { id: 'vertical-film', name: '最AI｜AI+影视创作【正规】', owner: 'Donna', wechat: 'BeWithDonna', size: '206', level: 'AI+影视', tags: ['影视', '创作'], desc: '主创在广州，想搞科幻大IP，有兴趣的来。' },
+      { id: 'vertical-hardware', name: '最AI【AI+硬件】', owner: '啃哥', wechat: 'ken2008huang', size: '20+', level: 'AI+硬件社群', tags: ['硬件'], desc: 'AI+硬件信息、应用和技术交流群。' },
+      { id: 'vertical-edu', name: '最AI【AI+教育】', owner: '啃哥', wechat: 'ken2008huang', size: '—', level: 'AI+教育社群', tags: ['教育'], desc: 'AI+教育行业趋势信息交流。' },
+      { id: 'vertical-discipline', name: '最AI【AI+奋斗｜自律】', owner: '不融易', wechat: 'LJS13794539946', size: '28', level: '自律打卡', tags: ['自律'], desc: '自律打卡与互相激励。' },
+      { id: 'vertical-metacog', name: '最AI【AI+元认知】', owner: '鱼得水', wechat: 'juruo_juruo', size: '9', level: '元认知', tags: ['认知'], desc: '佑禾的想法。' },
+      { id: 'vertical-individual', name: '最AI【AI超级个体】', owner: '鱼得水', wechat: 'juruo_juruo', size: '38', level: '主题群', tags: ['个体'], desc: '超级个体成长与方法交流。' },
+      { id: 'vertical-military', name: '最AI【AI+军事迷】', owner: 'jxj071013', wechat: 'jxj071013', size: '—', level: '兴趣群', tags: ['军事'], desc: '军事爱好者交流。' },
+      { id: 'vertical-jobhunt', name: '最AI【AI+求职】（1群/2群）', owner: '谢苹果', wechat: '19121220286', size: '1群200人；2群120人', level: '求职', tags: ['求职'], desc: '一起找工作。' },
+      { id: 'vertical-director', name: '最AI【AI+导演】', owner: '席地而坐', wechat: 'z885086815', size: '—', level: '垂直群', tags: ['导演'], desc: '导演与内容创作交流。' },
+      { id: 'vertical-design', name: '最AI【AI+设计】', owner: '谢苹果 / X lab', wechat: '19121220286 / heihu0613', size: '—', level: '垂直群', tags: ['设计'], desc: 'AI圈认识遇到房屋设计行业人士。' },
+      { id: 'vertical-3d', name: '最AI【AI+3D打印】', owner: '御风', wechat: 'foreverTOPLCL', size: '45', level: '3D打印', tags: ['3D打印'], desc: '3D打印交流。' },
+      { id: 'vertical-zxc', name: '最AI【AI+周星驰】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '兴趣群', tags: ['周星驰'], desc: '周星驰相关兴趣交流。' },
+      { id: 'vertical-desert', name: '最AI【AI+沙漠】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '兴趣群', tags: ['沙漠'], desc: '沙漠相关兴趣交流。' },
+      { id: 'vertical-parttime', name: '最AI【AI+兼职】', owner: '孙小鱼', wechat: 'ZhenMing_39', size: '51', level: '兼职/外包', tags: ['兼职', '外包'], desc: 'AI+兼职｜外包【开发速来】。' },
+      { id: 'vertical-charity', name: '最AI【AI+公益】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '公益', tags: ['公益'], desc: '公益相关交流。' },
+      { id: 'vertical-poetry', name: '最AI【AI+诗词歌赋】', owner: '张月亮', wechat: 'MonologueAurora', size: '10', level: '诗词歌赋', tags: ['诗词'], desc: '诗词歌赋交流。' },
+      { id: 'vertical-flea', name: '最AI【AI+跳蚤市场】', owner: '玉兔儿', wechat: 'U2_my_sunshine', size: '65', level: '二手交易', tags: ['跳蚤市场', '二手'], desc: '以华东师大二手交易为主。' },
+      { id: 'vertical-paint', name: '最接地气的AI【AI+绘画】', owner: '御风', wechat: 'foreverTOPLCL', size: '—', level: '绘画', tags: ['绘画'], desc: '绘画创作交流。' },
+      { id: 'vertical-music', name: '最AI【AI+音乐】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '音乐', tags: ['音乐'], desc: '音乐相关交流。' },
+      { id: 'vertical-parenting', name: '最AI【育儿+AI】', owner: '孙小鱼', wechat: 'ZhenMing_39', size: '—', level: '育儿', tags: ['育儿'], desc: '育儿与AI工具经验分享。' },
+      { id: 'vertical-reading', name: '最AI【AI+读书】', owner: '谢苹果', wechat: '19121220286', size: '11', level: '读书', tags: ['读书'], desc: '谢苹果和伙伴们的书单安利。' },
+      { id: 'vertical-audiobook', name: '最AI【AI+听书】', owner: '君洋', wechat: 'qinamie', size: '—', level: '听书', tags: ['听书'], desc: '听书分享与推荐。' },
+      { id: 'vertical-guoxue', name: '最AI【AI+国学】', owner: '沐沐', wechat: '15967899445', size: '—', level: '国学', tags: ['国学'], desc: '国学相关交流。' },
+      { id: 'vertical-dailylearn', name: '最AI【AI+日常学习】', owner: '洪泽宇', wechat: 'hzyqwo159', size: '—', level: '日常学习', tags: ['学习'], desc: '日常学习打卡与交流。' },
+      { id: 'vertical-imgvideo', name: '最AI【AI+图｜视频｜模型】', owner: '鹤之', wechat: 'Mercury-High-Flyer-W', size: '—', level: '垂直群', tags: ['图像', '视频', '模型'], desc: '图像/视频/模型相关交流。' },
+      { id: 'vertical-fear', name: '最AI【AI+AI恐惧】', owner: '安然', wechat: 'jiyaoxiezhan01', size: '—', level: '主题群', tags: ['心理', 'AI恐惧'], desc: '文科生克服AI恐惧的勇敢大作战。' },
+      { id: 'vertical-ipvideo', name: '最AI【AI+IP视频】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '垂直群', tags: ['IP视频'], desc: '大模型控制力边界探索。' },
+      { id: 'vertical-pingming', name: '平明散客', owner: '平明散客', wechat: 'Ye_Wechat04', size: '52', level: '提示词/控制力', tags: ['提示词', '控制'], desc: '发现提示词本地修改策略，实现大模型输出100%的控制（边界探索）。' },
+      { id: 'vertical-security', name: '最AI【AI+安全】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '垂直群', tags: ['安全'], desc: 'AI安全相关交流。' },
+      { id: 'vertical-ethics', name: '最AI【AI+伦理】', owner: '谢苹果', wechat: '19121220286', size: '—', level: '垂直群', tags: ['伦理'], desc: 'AI伦理相关交流。' },
+      { id: 'vertical-essay', name: '最AI【AI+作文批改｜阅读理解】', owner: '方', wechat: 'zellyf', size: '—', level: '垂直群', tags: ['作文', '教育'], desc: 'AI学生作文批改、阅读理解相关（在华东师大理科楼）。' },
+      { id: 'vertical-travel', name: '最AI【AI+文旅】', owner: 'Niya', wechat: 'NiyaoOolove', size: '—', level: '垂直群', tags: ['文旅'], desc: 'AI+文旅相关交流。' },
+      { id: 'vertical-uav', name: '最AI【AI+无人机｜低空经济】', owner: '御风', wechat: 'foreverTOPLCL', size: '21', level: '垂直群', tags: ['无人机', '低空经济'], desc: 'AI+无人机｜低空经济。' },
+      { id: 'vertical-survey', name: '最AI【AI+填问卷🔎】', owner: '安然', wechat: 'jiyaoxiezhan01', size: '—', level: '互帮互助', tags: ['问卷'], desc: '互帮互助填问卷。' },
+      { id: 'vertical-brain', name: '最AI【AI+脑科学】', owner: '张月亮', wechat: 'MonologueAurora', size: '15', level: '垂直群', tags: ['脑科学'], desc: '灵感来自史泰龙（致谢）。' },
+
+      // 其他（PDF里出现但信息不完整）
+      { id: 'other-mystery', name: '最AI【AI+最AI】', owner: '神秘人物', wechat: '—', size: '—', level: '未知', tags: ['其他'], desc: '（待补充）' }
+    ];
+
+    const CATEGORY_ORDER = [
+      { id: 'cat-core', label: '根群/核心', badge: 'Core', match: g => /根群|核心|群主群|社会实验|承接流量/.test(g.level) || g.tags.includes('根群') || g.tags.includes('核心') },
+      { id: 'cat-city', label: '城市群', badge: 'City', match: g => g.level.includes('城市群') || g.tags.includes('城市群') },
+      { id: 'cat-uni', label: '高校群', badge: 'Uni', match: g => g.level.includes('高校群') || g.tags.includes('高校群') || g.tags.includes('高校') },
+      { id: 'cat-job', label: '职业群', badge: 'Job', match: g => g.level.includes('AI+职业') || g.tags.includes('职业群') },
+      { id: 'cat-topic', label: '主题群', badge: 'Topic', match: g => g.level.includes('主题') || g.tags.includes('主题群') || g.tags.includes('社交') },
+      { id: 'cat-vertical', label: '垂直/兴趣群', badge: 'Vertical', match: g => g.level.includes('垂直') || g.level.includes('兴趣') || ['硬件','教育','影视','自律','认知','导演','设计','3D打印','音乐','绘画','读书','听书','国学','学习','安全','伦理','脑科学','文旅','无人机','问卷','提示词','求职','公益','诗词','跳蚤市场','育儿'].some(t => g.tags.includes(t)) },
+      { id: 'cat-other', label: '其他', badge: 'Other', match: g => true }
+    ];
+
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
+
+    function normalize(str) {
+      return String(str || '').toLowerCase().replace(/\s+/g, '');
+    }
+
+    function buildTree() {
+      const used = new Set();
+      const categories = CATEGORY_ORDER.map(c => ({ id: c.id, label: c.label, badge: c.badge, children: [] }));
+
+      for (const g of GROUPS) {
+        let idx = CATEGORY_ORDER.findIndex(c => c.id !== 'cat-other' && c.match(g));
+        if (idx === -1) idx = CATEGORY_ORDER.findIndex(c => c.id === 'cat-other');
+        categories[idx].children.push(g);
+        used.add(g.id);
+      }
+
+      // sort groups inside category (by name)
+      for (const c of categories) c.children.sort((a, b) => (a.name || '').localeCompare(b.name || '', 'zh-CN'));
+
+      return {
+        id: 'aix-chain',
+        label: 'AI+X 社群链',
+        badge: `共${GROUPS.length}群`,
+        desc: '数据源：AI+X社群清单【全社群】.pdf（群主/管理员自行维护入群方式）。',
+        children: categories.map(c => ({
+          id: c.id,
+          label: c.label,
+          badge: `${c.children.length}群`,
+          children: c.children.map(g => ({
+            id: g.id,
+            label: g.name,
+            badge: g.level,
+            meta: g
+          }))
+        }))
+      };
+    }
+
+    const TREE_DATA = buildTree();
+    const cssEscape = (window.CSS && typeof window.CSS.escape === 'function')
+      ? window.CSS.escape
+      : (value) => String(value).replace(/[^a-zA-Z0-9_\u00A0-\uFFFF-]/g, '\\$&');
+
+    const graphWrap = document.getElementById('graphWrap');
+    const graphArea = document.getElementById('graphArea');
+    const linesSvg = document.getElementById('graphLines');
+    const rootNode = document.getElementById('rootNode');
+    const rootBadge = document.getElementById('rootBadge');
+    const categoryRow = document.getElementById('categoryRow');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailSub = document.getElementById('detailSub');
+    const groupGrid = document.getElementById('groupGrid');
+    const statsText = document.getElementById('statsText');
+    const searchInput = document.getElementById('searchInput');
+
+    const nodeModal = document.getElementById('nodeModal');
+    const nodeTitle = document.getElementById('nodeTitle');
+    const nodeBody = document.getElementById('nodeBody');
+    const nodeModalClose = document.getElementById('nodeModalClose');
+
+    const categories = Array.isArray(TREE_DATA.children) ? TREE_DATA.children : [];
+    const groupById = new Map(GROUPS.map(g => [g.id, g]));
+    let activeCategoryId = 'all';
+    let currentQuery = '';
+
+    function flattenGroups(catId) {
+      if (catId === 'all') return GROUPS.slice();
+      const cat = categories.find(c => c.id === catId);
+      if (!cat || !Array.isArray(cat.children)) return [];
+      return cat.children.map(n => n.meta).filter(Boolean);
+    }
+
+    function computeMatchIds(q) {
+      const nq = normalize(q);
+      const matchIds = new Set();
+      if (!nq) return matchIds;
+      for (const g of GROUPS) {
+        const hay = normalize(`${g.name}|${g.owner}|${g.wechat}|${(g.tags || []).join(',')}|${g.level}|${g.desc}`);
+        if (hay.includes(nq)) matchIds.add(g.id);
+      }
+      return matchIds;
+    }
+
+    function renderCategoryRow(matchIds) {
+      categoryRow.innerHTML = '';
+      for (const c of categories) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'node';
+        btn.setAttribute('data-cat-id', c.id);
+        btn.setAttribute('aria-label', `查看 ${c.label} 社群`);
+
+        const total = Array.isArray(c.children) ? c.children.length : 0;
+        const matched = matchIds && matchIds.size
+          ? (c.children || []).reduce((acc, n) => acc + (n && n.meta && matchIds.has(n.meta.id) ? 1 : 0), 0)
+          : 0;
+
+        const badgeText = (matchIds && matchIds.size)
+          ? `${matched}匹配`
+          : `${total}群`;
+
+        btn.innerHTML = `<div>${escapeHtml(c.label)}</div><div class="badge">${escapeHtml(badgeText)}</div>`;
+
+        if (activeCategoryId === c.id) btn.classList.add('active');
+        if (matchIds && matchIds.size && matched === 0) btn.classList.add('dim');
+
+        btn.addEventListener('click', () => {
+          activeCategoryId = c.id;
+          updateView();
+        });
+        categoryRow.appendChild(btn);
+      }
+    }
+
+    function renderGroupGrid(groups, matchIds) {
+      groupGrid.innerHTML = '';
+      if (!groups.length) {
+        groupGrid.innerHTML = `<div class="kv" style="grid-column: 1 / -1;"><strong>没有结果</strong>：试试换个关键词，或点击上方分类。</div>`;
+        return;
+      }
+
+      for (const g of groups) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'node group-card';
+        btn.setAttribute('data-group-id', g.id);
+        btn.setAttribute('aria-label', `打开 ${g.name} 详情`);
+
+        const pills = (g.tags || []).slice(0, 6).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
+        const metaLines = [
+          g.owner ? `群主/管理员：${escapeHtml(g.owner)}` : null,
+          g.wechat ? `微信：${escapeHtml(g.wechat)}` : null,
+          g.size ? `人数：${escapeHtml(g.size)}` : null,
+          g.level ? `层级：${escapeHtml(g.level)}` : null
+        ].filter(Boolean).join('<br>');
+
+        btn.innerHTML = `
+          <div class="group-title">${escapeHtml(g.name)}</div>
+          <div class="group-meta">${metaLines}</div>
+          ${pills ? `<div class="group-pills">${pills}</div>` : ''}
+        `;
+
+        if (matchIds && matchIds.size) {
+          if (matchIds.has(g.id)) btn.classList.add('match');
+          else btn.classList.add('dim');
+        }
+
+        btn.addEventListener('click', () => openGroupModal(g.id));
+        groupGrid.appendChild(btn);
+      }
+    }
+
+    function drawLines() {
+      if (!graphWrap || !rootNode || !categoryRow || !linesSvg) return;
+      const wrapRect = graphWrap.getBoundingClientRect();
+      const width = Math.max(1, Math.round(wrapRect.width));
+      const height = Math.max(1, Math.round(wrapRect.height));
+      linesSvg.setAttribute('viewBox', `0 0 ${width} ${height}`);
+      linesSvg.setAttribute('preserveAspectRatio', 'none');
+      linesSvg.innerHTML = '';
+
+      const rr = rootNode.getBoundingClientRect();
+      const x1 = (rr.left + rr.right) / 2 - wrapRect.left;
+      const y1 = rr.bottom - wrapRect.top;
+
+      const catButtons = Array.from(categoryRow.querySelectorAll('[data-cat-id]'));
+      for (const el of catButtons) {
+        // if searching and category has 0 matches, skip drawing its line
+        if (el.classList.contains('dim')) continue;
+        const cr = el.getBoundingClientRect();
+        const x2 = (cr.left + cr.right) / 2 - wrapRect.left;
+        const y2 = cr.top - wrapRect.top;
+
+        const midY = y1 + (y2 - y1) / 2;
+        const d = `M ${x1} ${y1} L ${x1} ${midY} L ${x2} ${midY} L ${x2} ${y2}`;
+
+        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        path.setAttribute('d', d);
+        path.setAttribute('fill', 'none');
+        path.setAttribute('stroke', 'rgba(255, 255, 255, 0.55)');
+        path.setAttribute('stroke-width', '2');
+        path.setAttribute('stroke-linecap', 'round');
+        path.setAttribute('stroke-linejoin', 'round');
+        linesSvg.appendChild(path);
+
+        const arrow = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+        const size = 6;
+        arrow.setAttribute('d', `M ${x2} ${y2} L ${x2 - size} ${y2 - size} M ${x2} ${y2} L ${x2 + size} ${y2 - size}`);
+        arrow.setAttribute('fill', 'none');
+        arrow.setAttribute('stroke', 'rgba(255, 255, 255, 0.55)');
+        arrow.setAttribute('stroke-width', '2');
+        arrow.setAttribute('stroke-linecap', 'round');
+        linesSvg.appendChild(arrow);
+      }
+    }
+
+    function openRootModal() {
+      nodeTitle.textContent = 'AI+X 社群链';
+      nodeBody.innerHTML = `
+        <div class="kv"><strong>数据源</strong>：AI+X社群清单【全社群】.pdf</div>
+        <div class="kv"><strong>总社群数</strong>：${GROUPS.length}</div>
+        <div class="kv"><strong>说明</strong>：数据由群主/管理员自行维护入群方式；本页用“联系微信”作为统一入群指引。</div>
+        <div class="kv"><strong>建议</strong>：后续可按“地区维度/高校维度”进一步收拢。</div>
+      `;
+      nodeModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function openGroupModal(groupId) {
+      const g = groupById.get(groupId);
+      if (!g) return;
+      nodeTitle.textContent = g.name || '社群';
+      const pills = (g.tags || []).slice(0, 10).map(t => `<span class="pill">${escapeHtml(t)}</span>`).join('');
+      nodeBody.innerHTML = `
+        <div class="kv"><strong>群主/管理员</strong>：${escapeHtml(g.owner || '—')}</div>
+        <div class="kv"><strong>微信联系方式</strong>：${escapeHtml(g.wechat || '—')}</div>
+        <div class="kv"><strong>社群人数</strong>：${escapeHtml(g.size || '—')}</div>
+        <div class="kv"><strong>社群层级</strong>：${escapeHtml(g.level || '—')}</div>
+        ${g.desc ? `<div class="kv"><strong>社区内容</strong>：${escapeHtml(g.desc)}</div>` : ''}
+        <div class="kv"><strong>入群方式</strong>：请联系群主/管理员微信（二维码由群主/管理员自行维护）。</div>
+        ${pills ? `<div class="kv"><strong>标签</strong>：<br>${pills}</div>` : ''}
+      `;
+
+      nodeModal.classList.add('active');
+      document.body.style.overflow = 'hidden';
+    }
+
+    function closeNodeModal() {
+      nodeModal.classList.remove('active');
+      document.body.style.overflow = 'auto';
+    }
+
+    function updateView() {
+      currentQuery = searchInput.value || '';
+      const matchIds = computeMatchIds(currentQuery);
+
+      // root badge & stats
+      rootBadge.textContent = `共${GROUPS.length}群`;
+      statsText.textContent = `支持模糊匹配 · 共 ${GROUPS.length} 个社群 · ${categories.length} 个分类`;
+
+      // category row
+      renderCategoryRow(matchIds);
+
+      // detail title + groups
+      const activeCat = categories.find(c => c.id === activeCategoryId);
+      const baseGroups = flattenGroups(activeCategoryId);
+      const shownGroups = matchIds.size
+        ? baseGroups.filter(g => matchIds.has(g.id))
+        : baseGroups;
+
+      if (matchIds.size) {
+        const title = activeCat ? `${activeCat.label} · 搜索结果` : '全部 · 搜索结果';
+        detailTitle.textContent = title;
+        detailSub.textContent = `${shownGroups.length} 个匹配`;
+      } else {
+        detailTitle.textContent = activeCat ? activeCat.label : '全部社群';
+        detailSub.textContent = `${shownGroups.length} 个社群`;
+      }
+
+      // root active state
+      rootNode.classList.toggle('active', activeCategoryId === 'all');
+
+      renderGroupGrid(shownGroups, matchIds);
+
+      requestAnimationFrame(drawLines);
+      setTimeout(drawLines, 60);
+    }
+
+    // wire up
+    rootNode.addEventListener('click', () => {
+      activeCategoryId = 'all';
+      updateView();
+    });
+    rootNode.addEventListener('dblclick', openRootModal);
+
+    updateView();
+
+    nodeModalClose.addEventListener('click', closeNodeModal);
+    nodeModal.addEventListener('click', (e) => {
+      if (e.target && e.target.id === 'nodeModal') closeNodeModal();
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && nodeModal.classList.contains('active')) closeNodeModal();
+    });
+
+    let drawTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(drawTimer);
+      drawTimer = setTimeout(drawLines, 120);
+    });
+
+    let searchTimer;
+    searchInput.addEventListener('input', () => {
+      clearTimeout(searchTimer);
+      searchTimer = setTimeout(updateView, 80);
+    });
+  </script>
+</body>
+</html>
+
