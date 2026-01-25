@@ -42,3 +42,4 @@ curl -X POST https://your-domain.com/api/forum-feature \
 - [x] 1-16，让claude code（cc）给我的网页写个chatbot，调用智谱的免费的api。
 - [x] 1-16，namesilio买了个1年的域名: xpg.one。感觉AI和出海似乎是未来的大趋势呀。https://www.aixpg.one/
 - [x] 1-19，发现我的cc免费7天，到1月21日过期，因此多用起来它。让它帮我写了AI信息流的营销销售网页。
+- [x] 1-26，使用github copilot，增加matrix的支持。

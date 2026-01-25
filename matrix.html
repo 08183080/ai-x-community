@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Matrix - Archives</title>
+    <style>
+        :root {
+            --primary-color: #00ff41; /* Iconic Matrix Green */
+            --bg-color: #0d0d0d;
+            --card-bg: #000;
+            --glitch-color: #00ff41;
+            --text-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        /* Matrix Rain Background */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header / Terminal Effect */
+        header {
+            text-align: center;
+            margin-bottom: 60px;
+            padding-top: 40px;
+        }
+
+        h1 {
+            font-size: 3rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+        
+        h1::after {
+            content: '_';
+            animation: blink 1s infinite step-end;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+            border: 1px solid var(--primary-color);
+            padding: 5px 15px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .back-link:hover {
+            background: var(--primary-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        /* Grid System */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+
+        /* Card Styles */
+        .card {
+            background: var(--card-bg);
+            border: 1px solid #1a1a1a;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            height: 300px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 20px rgba(0, 255, 65, 0.2);
+            transform: translateY(-5px);
+        }
+
+        .card-image-container {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            filter: grayscale(100%) contrast(1.2) brightness(0.8);
+            transition: all 0.5s ease;
+        }
+
+        .card:hover .card-image {
+            filter: grayscale(0%) contrast(1.1);
+            transform: scale(1.05);
+        }
+
+        /* Overlay Green Tint on non-hover */
+        .card-image-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 255, 65, 0.1);
+            transition: opacity 0.3s;
+            pointer-events: none;
+        }
+
+        .card:hover .card-image-container::after {
+            opacity: 0;
+        }
+
+        /* Quote Overlay */
+        .quote-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            padding: 20px;
+            transform: translateY(100%);
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-top: 1px solid var(--primary-color);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .card:hover .quote-overlay {
+            transform: translateY(0);
+        }
+
+        .quote-text {
+            color: var(--primary-color);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            margin-bottom: 5px;
+            text-shadow: 0 0 5px rgba(0, 255, 65, 0.5);
+        }
+
+        .quote-marker {
+            color: #fff;
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-right: 5px;
+        }
+
+        /* Glitch Effect on Hover title */
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-color);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.4s ease;
+            z-index: 10;
+        }
+
+        .card:hover::before {
+            transform: scaleX(1);
+        }
+
+        /* Scanline Effect */
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+        
+        @media (max-width: 768px) {
+            .grid {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 2rem;
+            }
+            .quote-overlay {
+                transform: translateY(0); /* Always show text on mobile */
+                background: rgba(0, 0, 0, 0.7);
+                position: relative;
+                border-top: none;
+            }
+            .card {
+                height: auto;
+            }
+            .card-image-container {
+                height: 250px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="matrix-rain"></canvas>
+    </div>
+    
+    <div class="scanlines"></div>
+
+    <a href="index.html" class="back-link">&lt; SYSTEM.EXIT()</a>
+
+    <div class="container">
+        <header>
+            <h1 id="page-title">THE MATRIX ARCHIVES</h1>
+            <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">[ ACCESS GRANTED: LEVEL 9 ]</p>
+        </header>
+
+        <div class="grid">
+            <!-- Card 1 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_1.jpg" alt="Wake Up" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "Wake up, Neo."</p>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_2.jpg" alt="White Rabbit" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "Follow the white rabbit."</p>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_3.jpg" alt="The Matrix" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "The Matrix is everywhere. It is all around us."</p>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_4.jpg" alt="Red or Blue Pill" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "You take the blue pill... the story ends. You take the red pill... you stay in Wonderland."</p>
+                </div>
+            </div>
+
+            <!-- Card 5 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_5.jpg" alt="The Door" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "I can only show you the door. You're the one that has to walk through it."</p>
+                </div>
+            </div>
+
+            <!-- Card 6 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_6.jpg" alt="There is no spoon" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "Do not try and bend the spoon. That's impossible. Instead... only try to realize the truth. There is no spoon."</p>
+                </div>
+            </div>
+
+            <!-- Card 7 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_7.jpg" alt="Kung Fu" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "I know Kung Fu."</p>
+                </div>
+            </div>
+
+            <!-- Card 8 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_8.jpg" alt="Guns" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "Guns. Lots of guns."</p>
+                </div>
+            </div>
+
+            <!-- Card 9 -->
+            <div class="card">
+                <div class="card-image-container">
+                    <img src="images/matrix/scenes/scene_9.jpg" alt="Beginning and End" class="card-image">
+                </div>
+                <div class="quote-overlay">
+                    <p class="quote-text"><span class="quote-marker">></span> "Everything that has a beginning has an end."</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Matrix Rain Implementation
+        const canvas = document.getElementById('matrix-rain');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for(let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#0F0";
+            ctx.font = fontSize + "px monospace";
+
+            for(let i = 0; i < drops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if(drops[i] * fontSize > canvas.height && Math.random() > 0.975)
+                    drops[i] = 0;
+                
+                drops[i]++;
+            }
+        }
+
+        setInterval(draw, 33);
+
+        // Typing Effect for Title
+        const titleElement = document.getElementById('page-title');
+        const fullTitle = "THE MATRIX ARCHIVES";
+        titleElement.textContent = ""; // Clear initial text
+        
+        let charIndex = 0;
+        function typeWriter() {
+            if (charIndex < fullTitle.length) {
+                titleElement.textContent += fullTitle.charAt(charIndex);
+                charIndex++;
+                setTimeout(typeWriter, 100);
+            }
+        }
+        
+        // Start typing after a short delay
+        setTimeout(typeWriter, 500);
+
+    </script>
+</body>
+</html>
