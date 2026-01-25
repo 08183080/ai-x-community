@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Matrix - Quote Core</title>
+    <style>
+        :root {
+            --primary-color: #00ff41;
+            --bg-color: #0d0d0d;
+            --card-bg: #000;
+            --text-color: #e0e0e0;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Courier New', Courier, monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            opacity: 0.15;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(255,255,255,0),
+                rgba(255,255,255,0) 50%,
+                rgba(0,0,0,0.1) 50%,
+                rgba(0,0,0,0.1)
+            );
+            background-size: 100% 4px;
+            z-index: 999;
+            pointer-events: none;
+            opacity: 0.3;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 20px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 40px;
+        }
+
+        h1 {
+            font-size: 2.6rem;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.2em;
+            text-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color);
+            margin-bottom: 10px;
+            position: relative;
+            display: inline-block;
+        }
+
+        h1::after {
+            content: '_';
+            animation: blink 1s infinite step-end;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0; }
+        }
+
+        .back-link {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            color: var(--primary-color);
+            text-decoration: none;
+            border: 1px solid var(--primary-color);
+            padding: 5px 15px;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            font-size: 0.8rem;
+        }
+
+        .back-link:hover {
+            background: var(--primary-color);
+            color: #000;
+            box-shadow: 0 0 15px var(--primary-color);
+        }
+
+        .quote-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .quote-card {
+            background: var(--card-bg);
+            border: 1px solid #1a1a1a;
+            border-radius: 6px;
+            padding: 18px 18px 16px;
+            position: relative;
+            transition: all 0.3s ease;
+            min-height: 150px;
+        }
+
+        .quote-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background: var(--primary-color);
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 0.3s ease;
+        }
+
+        .quote-card:hover {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 18px rgba(0, 255, 65, 0.2);
+            transform: translateY(-4px);
+        }
+
+        .quote-card:hover::before {
+            transform: scaleX(1);
+        }
+
+        .quote-index {
+            color: #0f0;
+            font-size: 0.8rem;
+            letter-spacing: 0.1em;
+            opacity: 0.7;
+            margin-bottom: 10px;
+        }
+
+        .quote-en {
+            color: var(--primary-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 8px;
+        }
+
+        .quote-zh {
+            color: var(--text-color);
+            font-size: 0.9rem;
+            line-height: 1.5;
+            opacity: 0.85;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+            .quote-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div id="canvas-container">
+        <canvas id="matrix-rain"></canvas>
+    </div>
+    <div class="scanlines"></div>
+
+    <a href="matrix.html" class="back-link">&lt; RETURN.ROOT()</a>
+
+    <div class="container">
+        <header>
+            <h1 id="page-title">QUOTE CORE</h1>
+            <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">[ MATRIX QUOTES x30 ]</p>
+        </header>
+
+        <div class="quote-grid">
+            <div class="quote-card">
+                <div class="quote-index">#01</div>
+                <div class="quote-en">"Wake up, Neo."</div>
+                <div class="quote-zh">“醒醒吧，尼奥。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#02</div>
+                <div class="quote-en">"The Matrix has you."</div>
+                <div class="quote-zh">“矩阵控制了你。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#03</div>
+                <div class="quote-en">"Follow the white rabbit."</div>
+                <div class="quote-zh">“追随那只白兔。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#04</div>
+                <div class="quote-en">"Knock, knock, Neo."</div>
+                <div class="quote-zh">“叩门吧，尼奥。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#05</div>
+                <div class="quote-en">"What is the Matrix?"</div>
+                <div class="quote-zh">“什么是矩阵？”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#06</div>
+                <div class="quote-en">"Welcome to the real world."</div>
+                <div class="quote-zh">“欢迎来到真实世界。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#07</div>
+                <div class="quote-en">"The Matrix is everywhere. It is all around us."</div>
+                <div class="quote-zh">“矩阵无处不在，就在我们周围。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#08</div>
+                <div class="quote-en">"This is your last chance. After this, there is no turning back."</div>
+                <div class="quote-zh">“这是你最后的机会。从此以后，就再也无法回头。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#09</div>
+                <div class="quote-en">"You take the blue pill... the story ends."</div>
+                <div class="quote-zh">“你吞下蓝药丸……故事就此结束。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#10</div>
+                <div class="quote-en">"You take the red pill... you stay in Wonderland."</div>
+                <div class="quote-zh">“你吞下红药丸……你留在奇境。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#11</div>
+                <div class="quote-en">"I can only show you the door. You're the one that has to walk through it."</div>
+                <div class="quote-zh">“我只能给你指门，穿过去得靠你自己。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#12</div>
+                <div class="quote-en">"Remember, all I'm offering is the truth. Nothing more."</div>
+                <div class="quote-zh">“记住，我只提供真相，仅此而已。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#13</div>
+                <div class="quote-en">"Free your mind."</div>
+                <div class="quote-zh">“解放你的思想。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#14</div>
+                <div class="quote-en">"There is no spoon."</div>
+                <div class="quote-zh">“勺子并不存在。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#15</div>
+                <div class="quote-en">"Do not try and bend the spoon. That's impossible."</div>
+                <div class="quote-zh">“别去弯曲勺子，那是不可能的。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#16</div>
+                <div class="quote-en">"Instead... only try to realize the truth."</div>
+                <div class="quote-zh">“相反……只要去领悟真相。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#17</div>
+                <div class="quote-en">"I know kung fu."</div>
+                <div class="quote-zh">“我会功夫。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#18</div>
+                <div class="quote-en">"Show me."</div>
+                <div class="quote-zh">“给我看看。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#19</div>
+                <div class="quote-en">"Dodge this."</div>
+                <div class="quote-zh">“躲开这个。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#20</div>
+                <div class="quote-en">"Guns. Lots of guns."</div>
+                <div class="quote-zh">“枪。很多枪。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#21</div>
+                <div class="quote-en">"You are a slave, Neo."</div>
+                <div class="quote-zh">“你是个奴隶，尼奥。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#22</div>
+                <div class="quote-en">"The body cannot live without the mind."</div>
+                <div class="quote-zh">“身体离不开精神。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#23</div>
+                <div class="quote-en">"There is a difference between knowing the path and walking the path."</div>
+                <div class="quote-zh">“知道道路与走在路上不同。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#24</div>
+                <div class="quote-en">"You have to let it all go, Neo. Fear, doubt, and disbelief."</div>
+                <div class="quote-zh">“你必须放下一切，尼奥。恐惧、怀疑与不信。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#25</div>
+                <div class="quote-en">"I'm trying to free your mind, Neo."</div>
+                <div class="quote-zh">“我在试着解放你的思想，尼奥。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#26</div>
+                <div class="quote-en">"The answer is out there, Neo. It's looking for you."</div>
+                <div class="quote-zh">“答案就在外面，尼奥。它在找你。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#27</div>
+                <div class="quote-en">"It is the question that drives us."</div>
+                <div class="quote-zh">“问题驱使着我们。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#28</div>
+                <div class="quote-en">"I don't like the idea that I'm not in control of my life."</div>
+                <div class="quote-zh">“我不喜欢自己的人生不受掌控的感觉。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#29</div>
+                <div class="quote-en">"You have to see it for yourself."</div>
+                <div class="quote-zh">“你得亲眼去看。”</div>
+            </div>
+            <div class="quote-card">
+                <div class="quote-index">#30</div>
+                <div class="quote-en">"Choice is an illusion."</div>
+                <div class="quote-zh">“选择是一种幻象。”</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('matrix-rain');
+        const ctx = canvas.getContext('2d');
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*";
+        const fontSize = 16;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+
+        for (let x = 0; x < columns; x++) {
+            drops[x] = 1;
+        }
+
+        function draw() {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            ctx.fillStyle = "#0F0";
+            ctx.font = fontSize + "px monospace";
+
+            for (let i = 0; i < drops.length; i++) {
+                const text = alphabet.charAt(Math.floor(Math.random() * alphabet.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) {
+                    drops[i] = 0;
+                }
+                drops[i]++;
+            }
+        }
+
+        setInterval(draw, 33);
+    </script>
+</body>
+</html>

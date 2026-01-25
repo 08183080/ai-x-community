@@ -92,6 +92,27 @@
             box-shadow: 0 0 15px var(--primary-color);
         }
 
+        .deep-link {
+            display: inline-block;
+            margin-top: 18px;
+            padding: 10px 22px;
+            color: var(--primary-color);
+            text-decoration: none;
+            border: 1px solid var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            font-size: 0.75rem;
+            transition: all 0.3s;
+            box-shadow: 0 0 12px rgba(0, 255, 65, 0.2);
+        }
+
+        .deep-link:hover {
+            background: var(--primary-color);
+            color: #000;
+            box-shadow: 0 0 20px var(--primary-color);
+            transform: translateY(-2px);
+        }
+
         /* Grid System */
         .grid {
             display: grid;
@@ -264,6 +285,7 @@
         <header>
             <h1 id="page-title">THE MATRIX ARCHIVES</h1>
             <p style="color: #666; font-size: 0.8rem; margin-top: 10px;">[ ACCESS GRANTED: LEVEL 9 ]</p>
+            <a href="matrix-quotes.html" class="deep-link">ENTER QUOTE CORE</a>
         </header>
 
         <div class="grid">
