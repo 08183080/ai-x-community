@@ -223,6 +223,13 @@
             margin: 0 auto;
         }
 
+        .feedback-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 30px;
+            align-items: start;
+        }
+
         .feedback-card {
             background: var(--glass-bg);
             backdrop-filter: blur(20px);
@@ -243,7 +250,6 @@
 
         .feedback-image {
             width: 100%;
-            max-width: 600px;
             height: auto;
             border-radius: 12px;
             margin-bottom: 20px;
@@ -456,9 +462,15 @@
         <section class="feedback-section">
             <h2 class="section-title">用户反馈</h2>
             <div class="feedback-container">
-                <div class="feedback-card">
-                    <img src="ai-news-flow/用户反馈1.jpg" alt="用户反馈" class="feedback-image">
-                    <p class="feedback-quote">"每天都能收到最新的AI项目信息，非常实用！"</p>
+                <div class="feedback-grid">
+                    <div class="feedback-card">
+                        <img src="ai-news-flow/用户反馈1.jpg" alt="用户反馈1" class="feedback-image">
+                        <p class="feedback-quote">"每天都能收到最新的AI项目信息，非常实用！"</p>
+                    </div>
+                    <div class="feedback-card">
+                        <img src="ai-news-flow/用户反馈2.jpg" alt="用户反馈2" class="feedback-image">
+                        <p class="feedback-quote">"内容很精选，节省了我每天找项目的时间。"</p>
+                    </div>
                 </div>
             </div>
         </section>
