@@ -43,3 +43,5 @@ curl -X POST https://your-domain.com/api/forum-feature \
 - [x] 1-16，namesilio买了个1年的域名: xpg.one。感觉AI和出海似乎是未来的大趋势呀。https://www.aixpg.one/
 - [x] 1-19，发现我的cc免费7天，到1月21日过期，因此多用起来它
 - [x] 1-29，现在我用飞书写博客，挂载在网站。同时，手机端的ima。也复活了。
+- [x] 1-30，开始复活使用我的苹果电脑。
+- [x] 1-30，增加一些往事回忆。记住以前失败的经验教训。关于AI+X 1.0。
